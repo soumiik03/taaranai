@@ -8,14 +8,13 @@ import { DEFAULT_AUTH_CALLBACK, getSafeCallbackPath, SIGN_IN_PATH } from "../uti
 export async function signInWithGithub(formData: FormData) {
   const callback = formData.get("callbackUrl");
 
-
   const redirectTo = getSafeCallbackPath(
     typeof callback === "string" ? callback : null
   );
   const result = await auth.api.signInSocial({
     body: {
       provider: "github",
-      callbackURL: redirectTo
+      callbackURL: redirectTo,
     },
     headers: await headers(),
   });
@@ -26,9 +25,14 @@ export async function signInWithGithub(formData: FormData) {
 }
 
 export async function getServerSession() {
-  return auth.api.getSession({
-    headers: await headers(),
-  });
+  try {
+    return await auth.api.getSession({
+      headers: await headers(),
+    });
+  } catch (error) {
+    console.error("Failed to retrieve server session:", error);
+    return null;
+  }
 }
 
 export async function requireAuth(redirectTo = SIGN_IN_PATH) {
