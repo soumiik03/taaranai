@@ -3,10 +3,10 @@ import { BrandLogo } from "@/components/ui/brand-logo";
 import { GithubSignInForm } from "./github-sign-in-form";
 
 type AuthCardProps = {
-  callbackUrl?: string;
+  callbackURL?: string;
 };
 
-export function AuthCard({ callbackUrl }: AuthCardProps) {
+export function AuthCard({ callbackURL }: AuthCardProps) {
   return (
     <div className="relative group w-full max-w-md mx-auto">
       {/* Subtle outer glow effect */}
@@ -32,7 +32,7 @@ export function AuthCard({ callbackUrl }: AuthCardProps) {
 
         {/* Form Action */}
         <div className="w-full space-y-6">
-          <GithubSignInForm callbackUrl={callbackUrl} />
+          <GithubSignInForm callbackURL={callbackURL} />
 
           {/* Footnote */}
           <p className="text-center text-xs text-zinc-500 font-light leading-relaxed px-2">

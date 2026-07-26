@@ -15,10 +15,10 @@ export function GitHubIcon({ className = "size-4" }: { className?: string }) {
 
 type GithubSignInFormProps = {
   /** Optional post-login redirect path (e.g. GitHub install callback). */
-  callbackUrl?: string;
+  callbackURL?: string;
 };
 
-export function GithubSignInForm({ callbackUrl }: GithubSignInFormProps) {
+export function GithubSignInForm({ callbackURL }: GithubSignInFormProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -27,14 +27,14 @@ export function GithubSignInForm({ callbackUrl }: GithubSignInFormProps) {
 
     await authClient.signIn.social({
       provider: "github",
-      callbackURL: callbackUrl || "/dashboard",
+      callbackURL: callbackURL || "/dashboard",
     });
   };
 
   return (
     <form onSubmit={handleSignIn} className="w-full">
-      {callbackUrl ? (
-        <input type="hidden" name="callbackUrl" value={callbackUrl} />
+      {callbackURL ? (
+        <input type="hidden" name="callbackURL" value={callbackURL} />
       ) : null}
       <Button
         type="submit"
