@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 const DASHBOARD_PATH = "/dashboard";
 const SIGN_IN_PATH = "/sign-in";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const sessionCookie = getSessionCookie(request);
 
