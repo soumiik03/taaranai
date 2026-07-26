@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
-import { signInWithGithub } from "../actions";
 
 export function GitHubIcon({ className = "size-4" }: { className?: string }) {
   return (
@@ -26,21 +25,14 @@ export function GithubSignInForm({ callbackUrl }: GithubSignInFormProps) {
     e.preventDefault();
     setIsLoading(true);
 
-    try {
-      await authClient.signIn.social({
-        provider: "github",
-        callbackURL: callbackUrl || "/",
-      });
-    } catch (err) {
-      console.error("Client sign in failed, invoking server action fallback", err);
-      const formData = new FormData();
-      if (callbackUrl) formData.append("callbackUrl", callbackUrl);
-      await signInWithGithub(formData);
-    }
+    await authClient.signIn.social({
+      provider: "github",
+      callbackURL: callbackUrl || "/dashboard",
+    });
   };
 
   return (
-    <form onSubmit={handleSignIn} action={signInWithGithub} className="w-full">
+    <form onSubmit={handleSignIn} className="w-full">
       {callbackUrl ? (
         <input type="hidden" name="callbackUrl" value={callbackUrl} />
       ) : null}
@@ -52,7 +44,7 @@ export function GithubSignInForm({ callbackUrl }: GithubSignInFormProps) {
         {isLoading ? (
           <>
             <Spinner className="size-4 text-zinc-950 animate-spin" />
-            <span>Redirecting to GitHub…</span>
+            <span>Redirecting to GitHub...</span>
           </>
         ) : (
           <>

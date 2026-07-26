@@ -3,10 +3,14 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./db";
 import { nextCookies } from "better-auth/next-js";
 
+const authBaseUrl =
+  process.env.BETTER_AUTH_URL?.trim() ||
+  (process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL.trim()}`
+    : "http://localhost:3000");
+
 export const auth = betterAuth({
-  baseURL:
-    process.env.BETTER_AUTH_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"),
+  baseURL: authBaseUrl,
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
