@@ -5,6 +5,8 @@ import { AuthHero } from "@/features/auth/components/auth-hero";
 import { AuthFeatureGrid } from "@/features/auth/components/auth-feature-grid";
 import { AuthCard } from "@/features/auth/components/auth-card";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Sign In — Taaran AI",
   description: "Sign in with GitHub to access automated code reviews and repository intelligence.",
