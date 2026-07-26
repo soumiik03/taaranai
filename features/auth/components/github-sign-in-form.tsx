@@ -1,8 +1,9 @@
 "use client";
 
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { useFormStatus } from "react-dom";
+import { authClient } from "@/lib/auth-client";
 import { signInWithGithub } from "../actions";
 
 export function GitHubIcon({ className = "size-4" }: { className?: string }) {
@@ -13,42 +14,53 @@ export function GitHubIcon({ className = "size-4" }: { className?: string }) {
   );
 }
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
-
-  return (
-    <Button
-      type="submit"
-      disabled={pending}
-      className="relative group w-full h-11 px-5 rounded-lg bg-zinc-100 text-zinc-950 hover:bg-white font-medium text-sm transition-all duration-200 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)] disabled:opacity-75 cursor-pointer flex items-center justify-center gap-2.5 overflow-hidden"
-    >
-      {pending ? (
-        <>
-          <Spinner className="size-4 text-zinc-950 animate-spin" />
-          <span>Redirecting to GitHub…</span>
-        </>
-      ) : (
-        <>
-          <GitHubIcon className="size-4 transition-transform group-hover:scale-110" />
-          <span>Continue with GitHub</span>
-        </>
-      )}
-    </Button>
-  );
-}
-
 type GithubSignInFormProps = {
   /** Optional post-login redirect path (e.g. GitHub install callback). */
   callbackUrl?: string;
 };
 
 export function GithubSignInForm({ callbackUrl }: GithubSignInFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      await authClient.signIn.social({
+        provider: "github",
+        callbackURL: callbackUrl || "/",
+      });
+    } catch (err) {
+      console.error("Client sign in failed, invoking server action fallback", err);
+      const formData = new FormData();
+      if (callbackUrl) formData.append("callbackUrl", callbackUrl);
+      await signInWithGithub(formData);
+    }
+  };
+
   return (
-    <form action={signInWithGithub} className="w-full">
+    <form onSubmit={handleSignIn} action={signInWithGithub} className="w-full">
       {callbackUrl ? (
         <input type="hidden" name="callbackUrl" value={callbackUrl} />
       ) : null}
-      <SubmitButton />
+      <Button
+        type="submit"
+        disabled={isLoading}
+        className="relative group w-full h-11 px-5 rounded-lg bg-zinc-100 text-zinc-950 hover:bg-white font-medium text-sm transition-all duration-200 shadow-sm cursor-pointer flex items-center justify-center gap-2.5 overflow-hidden"
+      >
+        {isLoading ? (
+          <>
+            <Spinner className="size-4 text-zinc-950 animate-spin" />
+            <span>Redirecting to GitHub…</span>
+          </>
+        ) : (
+          <>
+            <GitHubIcon className="size-4 transition-transform group-hover:scale-110" />
+            <span>Continue with GitHub</span>
+          </>
+        )}
+      </Button>
     </form>
   );
 }
