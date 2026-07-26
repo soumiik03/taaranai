@@ -16,8 +16,8 @@ export function AuthCard({ callbackURL }: AuthCardProps) {
       <div className="relative flex flex-col items-center rounded-2xl border border-zinc-800/90 bg-[#111114]/90 p-8 sm:p-10 backdrop-blur-xl shadow-2xl shadow-black/90">
         
         {/* Brand Icon Header */}
-        <div className="relative mb-8 flex items-center justify-center p-3.5 rounded-xl bg-zinc-900/90 border border-zinc-800 shadow-inner">
-          <BrandLogo size={44} className="text-zinc-100" />
+        <div className="relative mb-8 flex items-center justify-center px-5 py-3.5 rounded-xl bg-zinc-900/90 border border-zinc-800 shadow-inner">
+          <BrandLogo size={36} className="text-zinc-100" />
         </div>
 
         {/* Title & Subtitle */}

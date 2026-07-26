@@ -34,8 +34,8 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
     <Card className="border-zinc-800/80 bg-[#1f1f23]/90 text-zinc-100 shadow-2xl shadow-black/60 rounded-2xl p-2 border">
       <CardHeader className="items-center text-center pb-2 pt-6">
         <div className="mb-4 flex justify-center">
-          <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800/80 flex items-center justify-center text-white shadow-inner">
-            <BrandLogo size={36} />
+          <div className="px-5 py-3 rounded-xl bg-zinc-900/90 border border-zinc-800/80 flex items-center justify-center text-white shadow-inner">
+            <BrandLogo size={32} />
           </div>
         </div>
         <CardTitle className="text-2xl font-serif font-normal tracking-tight text-zinc-100">
