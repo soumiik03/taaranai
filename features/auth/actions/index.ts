@@ -19,9 +19,20 @@ export async function signInWithGithub(formData: FormData) {
     headers: await headers(),
   });
 
-  if (result.url) {
+  if (result?.url) {
     redirect(result.url);
   }
+}
+
+export async function signOutUser() {
+  try {
+    await auth.api.signOut({
+      headers: await headers(),
+    });
+  } catch (error) {
+    console.error("Error signing out:", error);
+  }
+  redirect(SIGN_IN_PATH);
 }
 
 export async function getServerSession() {
