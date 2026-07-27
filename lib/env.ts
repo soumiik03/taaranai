@@ -1,0 +1,8 @@
+export const env = {
+  GITHUB_APP_ID: process.env.GITHUB_APP_ID ?? '',
+  GITHUB_APP_PRIVATE_KEY: process.env.GITHUB_APP_PRIVATE_KEY ?? '',
+  GITHUB_WEBHOOK_SECRET: process.env.GITHUB_WEBHOOK_SECRET ?? '',
+  GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID ?? '',
+  GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET ?? '',
+  NEXT_PUBLIC_GITHUB_APP_SLUG: process.env.NEXT_PUBLIC_GITHUB_APP_SLUG ?? '',
+}

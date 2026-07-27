@@ -17,80 +17,51 @@ import {
 
 interface OverviewContentProps {
   orgName: string
+  hasGithubConnection: boolean
+  metrics: {
+    totalRequests: number
+    pendingRequests: number
+    readyRequests: number
+    projectsCount: number
+  }
+  recentActivities: {
+    id: string
+    title: string
+    type: string
+    status: StatusType
+    timestamp: string
+    author: string
+  }[]
 }
 
-const mockMetrics = [
-  {
-    title: 'Total Feature Requests',
-    value: '24',
-    change: '+12% from last week',
-    icon: Sparkles,
-  },
-  {
-    title: 'PRDs Generated',
-    value: '18',
-    change: '+4 generated today',
-    icon: FileText,
-  },
-  {
-    title: 'PRs Reviewed',
-    value: '142',
-    change: '4.2m avg execution',
-    icon: GitPullRequest,
-  },
-  {
-    title: 'Features Shipped',
-    value: '12',
-    change: '100% test pass rate',
-    icon: CheckCircle2,
-  },
-]
+export function OverviewContent({ orgName, hasGithubConnection, metrics, recentActivities }: OverviewContentProps) {
+  const metricCards = [
+    {
+      title: 'Total Feature Requests',
+      value: metrics.totalRequests.toString(),
+      change: 'All time',
+      icon: Sparkles,
+    },
+    {
+      title: 'Pending Clarification',
+      value: metrics.pendingRequests.toString(),
+      change: 'Requires attention',
+      icon: FileText,
+    },
+    {
+      title: 'Ready for PRD',
+      value: metrics.readyRequests.toString(),
+      change: 'Fully specified',
+      icon: CheckCircle2,
+    },
+    {
+      title: 'Active Projects',
+      value: metrics.projectsCount.toString(),
+      change: 'In this workspace',
+      icon: GitBranch,
+    },
+  ]
 
-interface RecentActivity {
-  id: string
-  title: string
-  type: string
-  status: StatusType
-  timestamp: string
-  author: string
-}
-
-const mockActivities: RecentActivity[] = [
-  {
-    id: 'req_01',
-    title: 'Implement Multi-Tenant Workspace Switching',
-    type: 'Feature Request',
-    status: 'SHIPPED',
-    timestamp: '10 mins ago',
-    author: 'Alex Chen',
-  },
-  {
-    id: 'prd_02',
-    title: 'Automated Code Review Agent via GitHub Webhooks',
-    type: 'PRD Document',
-    status: 'IN_REVIEW',
-    timestamp: '42 mins ago',
-    author: 'Sarah Jenkins',
-  },
-  {
-    id: 'pr_03',
-    title: 'PR #142: Fix Prisma 7 Driver Adapter transaction protocol',
-    type: 'Pull Request Review',
-    status: 'APPROVED',
-    timestamp: '2 hours ago',
-    author: 'Taaran AI Bot',
-  },
-  {
-    id: 'req_04',
-    title: 'Stripe Billing & Metered Usage Integration',
-    type: 'Feature Request',
-    status: 'IN_PROGRESS',
-    timestamp: '5 hours ago',
-    author: 'Marcus Vance',
-  },
-]
-
-export function OverviewContent({ orgName }: OverviewContentProps) {
   return (
     <div className="space-y-8 max-w-6xl mx-auto font-sans">
       {/* Top Header View */}
@@ -148,7 +119,7 @@ export function OverviewContent({ orgName }: OverviewContentProps) {
 
       {/* Overview Stat Cards (Sharp 0px box, #262626 border, #0D0D0F surface) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {mockMetrics.map((metric, idx) => {
+        {metricCards.map((metric, idx) => {
           const Icon = metric.icon
           return (
             <div
@@ -187,7 +158,12 @@ export function OverviewContent({ orgName }: OverviewContentProps) {
           </div>
 
           <div className="rounded-none border border-[#262626] bg-[#0D0D0F] divide-y divide-[#262626]">
-            {mockActivities.map((act) => {
+            {recentActivities.length === 0 && (
+              <div className="p-6 text-center text-sm text-[#8B8B92]">
+                No recent activity.
+              </div>
+            )}
+            {recentActivities.map((act) => {
               const style = getStatusStyle(act.status)
               return (
                 <div
@@ -232,25 +208,43 @@ export function OverviewContent({ orgName }: OverviewContentProps) {
             Integrations
           </h2>
 
-          {/* GitHub Connection Action Slot (Dashed 1px border in #262626, rounded-none) */}
-          <div className="rounded-none border border-dashed border-[#262626] bg-[#0D0D0F] p-4 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#FAFAFA]">
-              <GitBranch className="size-4 text-[#8B8B92]" />
-              <span>Connect GitHub Repository</span>
+          {hasGithubConnection ? (
+            <div className="rounded-none border border-solid border-[#262626] bg-[#0D0D0F] p-4 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#FAFAFA]">
+                <GitBranch className="size-4 text-[#FAFAFA]" />
+                <span>GitHub Connected</span>
+              </div>
+              <p className="text-xs text-[#8B8B92] leading-relaxed">
+                Your workspace is successfully connected to GitHub for automated code reviews.
+              </p>
+              <button
+                type="button"
+                className="w-full py-1.5 rounded-none border border-[#262626] bg-[#161619] text-xs font-semibold text-[#FAFAFA] cursor-default flex items-center justify-center gap-1.5"
+              >
+                <Check className="size-3.5 text-[#00573D]" />
+                <span>Active</span>
+              </button>
             </div>
+          ) : (
+            <div className="rounded-none border border-dashed border-[#262626] bg-[#0D0D0F] p-4 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#FAFAFA]">
+                <GitBranch className="size-4 text-[#8B8B92]" />
+                <span>Connect GitHub Repository</span>
+              </div>
 
-            <p className="text-xs text-[#8B8B92] leading-relaxed">
-              Enable automated code reviews, PR validation, and AI pull request summaries.
-            </p>
+              <p className="text-xs text-[#8B8B92] leading-relaxed">
+                Enable automated code reviews, PR validation, and AI pull request summaries.
+              </p>
 
-            <button
-              type="button"
-              className="w-full py-1.5 rounded-none border border-[#262626] bg-[#0D0D0F] text-xs font-semibold text-[#FAFAFA] hover:bg-[#1F1F23] transition-colors flex items-center justify-center gap-1.5"
-            >
-              <span>Setup Repository</span>
-              <ExternalLink className="size-3.5 text-[#8B8B92]" />
-            </button>
-          </div>
+              <button
+                type="button"
+                className="w-full py-1.5 rounded-none border border-[#262626] bg-[#0D0D0F] text-xs font-semibold text-[#FAFAFA] hover:bg-[#1F1F23] transition-colors flex items-center justify-center gap-1.5"
+              >
+                <span>Setup Repository</span>
+                <ExternalLink className="size-3.5 text-[#8B8B92]" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
