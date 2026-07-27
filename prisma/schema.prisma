@@ -25,6 +25,8 @@ model User {
 
   @@unique([email])
   @@map("user")
+
+  members Member[]
 }
 
 model Session {
@@ -73,4 +75,52 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model Organization {
+  id      String  @id @default(cuid())
+  name    String
+  slug    String  @unique
+  logoUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members  Member[]
+  projects Project[]
+
+  // Will be filled in during Chapter 7
+  githubInstallationId String?
+}
+
+model Member {
+  id   String     @id @default(cuid())
+  role MemberRole @default(OWNER)
+
+  userId         String
+  organizationId String
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, organizationId])
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model Project {
+  id   String @id @default(cuid())
+  name String
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
