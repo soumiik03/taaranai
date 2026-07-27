@@ -3,19 +3,13 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./db";
 import { nextCookies } from "better-auth/next-js";
 
-const authBaseUrl =
-  process.env.BETTER_AUTH_URL?.trim() ||
-  (process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL.trim()}`
-    : "http://localhost:3000");
-
 export const auth = betterAuth({
-  baseURL: authBaseUrl,
+  baseURL: "http://localhost:3000",
   trustedOrigins: [
     "http://localhost:3000",
     "https://*.ngrok-free.app",
     "https://*.ngrok-free.dev",
-    "https://*.ngrok.io"
+    "https://*.ngrok.io",
   ],
   database: prismaAdapter(prisma, {
     provider: "postgresql",
@@ -27,4 +21,7 @@ export const auth = betterAuth({
     },
   },
   plugins: [nextCookies()],
+  logger: {
+    level: "debug",
+  },
 });

@@ -32,12 +32,10 @@ export function GithubSignInForm({ callbackURL }: GithubSignInFormProps) {
   };
 
   return (
-    <form onSubmit={handleSignIn} className="w-full">
-      {callbackURL ? (
-        <input type="hidden" name="callbackURL" value={callbackURL} />
-      ) : null}
+    <div className="w-full">
       <Button
-        type="submit"
+        type="button"
+        onClick={handleSignIn}
         disabled={isLoading}
         className="w-full h-10 px-4 rounded-none bg-[#FAFAFA] text-[#0A0A0A] hover:bg-[#E5E5E5] font-semibold text-xs transition-colors cursor-pointer flex items-center justify-center gap-2 border border-transparent shadow-none"
       >
@@ -53,6 +51,6 @@ export function GithubSignInForm({ callbackURL }: GithubSignInFormProps) {
           </>
         )}
       </Button>
-    </form>
+    </div>
   );
 }
