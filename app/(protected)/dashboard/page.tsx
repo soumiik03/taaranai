@@ -1,4 +1,3 @@
-// app/(protected)/dashboard/page.tsx
 import { getSession, getActiveOrganization } from '@/lib/session'
 import { prisma } from '@/lib/db'
 import { WorkspaceSwitcher } from '@/features/workspace/components/workspace-switcher'

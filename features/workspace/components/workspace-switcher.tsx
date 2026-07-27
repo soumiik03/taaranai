@@ -1,4 +1,3 @@
-// features/workspace/components/workspace-switcher.tsx
 'use client'
 
 import { useTransition } from 'react'
