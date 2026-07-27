@@ -30,7 +30,7 @@ export function UserMenu({ user }: UserMenuProps) {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex size-7 items-center justify-center rounded-full bg-[#7C6EF2]/20 border border-[#7C6EF2]/40 text-xs font-semibold text-[#7C6EF2] hover:border-[#7C6EF2] transition-colors outline-none cursor-pointer"
+          className="flex size-7 items-center justify-center rounded-full bg-[#22C55E] text-xs font-bold text-white transition-opacity hover:opacity-90 outline-none cursor-pointer"
         >
           {user?.image ? (
             <img
@@ -44,25 +44,25 @@ export function UserMenu({ user }: UserMenuProps) {
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-56 border-[#1F1F23] bg-[#111113] p-1.5 shadow-none rounded-md">
-        <div className="flex flex-col px-3 py-2 border-b border-[#1F1F23] mb-1">
-          <span className="text-xs font-semibold text-[#F5F5F5] truncate">
+      <DropdownMenuContent align="end" className="w-56 border-[#262626] bg-[#0D0D0F] p-1 shadow-none rounded-md">
+        <div className="flex flex-col px-3 py-2 border-b border-[#262626] mb-1">
+          <span className="text-xs font-semibold text-[#FAFAFA] truncate">
             {displayName}
           </span>
-          <span className="text-[11px] text-[#8A8A93] font-mono truncate mt-0.5">
+          <span className="text-[11px] text-[#8B8B92] font-mono truncate mt-0.5">
             {displayEmail}
           </span>
         </div>
 
         <DropdownMenuItem
           onClick={() => (window.location.href = '/dashboard/settings')}
-          className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#8A8A93] hover:text-[#F5F5F5] hover:bg-[#1F1F23]/60 rounded cursor-pointer font-medium"
+          className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#8B8B92] hover:text-[#FAFAFA] hover:bg-[#1F1F23] rounded-md cursor-pointer font-medium"
         >
-          <Settings className="size-3.5 text-[#8A8A93]" />
+          <Settings className="size-3.5 text-[#8B8B92]" />
           <span>Account Settings</span>
         </DropdownMenuItem>
 
-        <div className="border-t border-[#1F1F23] my-1 pt-1">
+        <div className="border-t border-[#262626] my-1 pt-1">
           <DropdownMenuItem
             disabled={isPending}
             onClick={() => {
@@ -70,7 +70,7 @@ export function UserMenu({ user }: UserMenuProps) {
                 signOutUser()
               })
             }}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#EF4444] hover:bg-[#EF4444]/10 rounded cursor-pointer font-medium"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#EF4444] hover:bg-[#EF4444]/10 rounded-md cursor-pointer font-medium"
           >
             <LogOut className="size-3.5 text-[#EF4444]" />
             <span>{isPending ? 'Signing out...' : 'Sign out'}</span>

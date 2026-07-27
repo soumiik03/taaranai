@@ -1,26 +1,13 @@
-import React from "react";
 import type { Metadata } from "next";
-import { BrandLogo } from "@/components/ui/brand-logo";
-import { GithubSignInForm } from "@/features/auth/components/github-sign-in-form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldSet,
-} from "@/components/ui/field";
+import { GithubSignInForm, GitHubIcon } from "@/features/auth/components/github-sign-in-form";
+import { Code2 } from "lucide-react";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Sign in",
-  description: "Sign in with your GitHub account.",
+  title: "Sign in - Taaran AI",
+  description: "Sign in to your Taaran AI workspace.",
 };
 
 type SignInPageProps = {
@@ -31,33 +18,62 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
   const { callbackURL } = await searchParams;
 
   return (
-    <Card className="border-zinc-800/80 bg-[#1f1f23]/90 text-zinc-100 shadow-2xl shadow-black/60 rounded-2xl p-2 border">
-      <CardHeader className="items-center text-center pb-2 pt-6">
-        <div className="mb-4 flex justify-center">
-          <div className="px-5 py-3 rounded-xl bg-zinc-900/90 border border-zinc-800/80 flex items-center justify-center text-white shadow-inner">
-            <BrandLogo size={32} />
-          </div>
+    <div className="w-full space-y-6 text-center font-sans">
+      {/* Title */}
+      <div className="space-y-1.5">
+        <h1 className="text-xl font-bold tracking-tight text-[#FAFAFA]">
+          Sign In to Taaran AI
+        </h1>
+        <p className="text-xs text-[#8B8B92]">
+          Select your provider to log into your workspace
+        </p>
+      </div>
+
+      {/* Provider Selector Boxes (Plain #262626 border, rounded-none) */}
+      <div className="grid grid-cols-2 gap-2 pt-1">
+        <div className="flex items-center justify-center gap-2 p-2.5 rounded-none border border-[#262626] bg-[#1F1F23] text-xs font-semibold text-[#FAFAFA]">
+          <GitHubIcon className="size-4 text-[#FAFAFA]" />
+          <span>GitHub</span>
         </div>
-        <CardTitle className="text-2xl font-serif font-normal tracking-tight text-zinc-100">
-          Welcome back
-        </CardTitle>
-        <CardDescription className="text-zinc-400 text-sm font-light mt-1.5 px-2">
-          Sign in with GitHub to review and manage your code.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="pt-4 pb-6">
-        <FieldSet>
-          <FieldGroup>
-            <Field>
-              <GithubSignInForm callbackURL={callbackURL} />
-              <FieldDescription className="text-center text-xs text-zinc-500 font-light mt-4 leading-relaxed px-1">
-                We only request the permissions needed to identify your
-                account. You can revoke access anytime from GitHub settings.
-              </FieldDescription>
-            </Field>
-          </FieldGroup>
-        </FieldSet>
-      </CardContent>
-    </Card>
+        <div className="flex items-center justify-center gap-2 p-2.5 rounded-none border border-[#262626] bg-[#0D0D0F] text-xs font-medium text-[#8B8B92] opacity-60 cursor-not-allowed">
+          <Code2 className="size-4 text-[#8B8B92]" />
+          <span>GitLab</span>
+        </div>
+      </div>
+
+      {/* Main Action Container (Flat #0D0D0F surface, 1px #262626 border, rounded-none) */}
+      <div className="rounded-none border border-[#262626] bg-[#0D0D0F] p-5 space-y-4 text-left">
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-[#FAFAFA] block">
+            Authentication Provider
+          </label>
+          <p className="text-xs text-[#8B8B92]">
+            Authenticate using your GitHub account permissions.
+          </p>
+        </div>
+
+        <GithubSignInForm callbackURL={callbackURL} />
+
+        <div className="pt-1 text-center space-y-1.5">
+          <p className="text-[11px] text-[#8B8B92]">
+            Need an account?{" "}
+            <Link href="/sign-in" className="text-[#6C5DD3] hover:underline font-medium">
+              Sign up
+            </Link>
+          </p>
+          <p className="text-[11px] text-[#8B8B92]">
+            By signing in, you agree to our{" "}
+            <a href="#" className="text-[#6C5DD3] hover:underline">
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a href="#" className="text-[#6C5DD3] hover:underline">
+              Privacy Policy
+            </a>
+            .
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }

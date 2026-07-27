@@ -84,7 +84,7 @@ export function DropdownMenuContent({
   return (
     <div
       className={cn(
-        "absolute z-50 mt-2 min-w-[12rem] overflow-hidden rounded-xl border border-zinc-800 bg-[#121215] p-1.5 text-zinc-100 shadow-xl shadow-black/80 animate-in fade-in-80 zoom-in-95",
+        "absolute z-50 mt-1 min-w-[12rem] overflow-hidden rounded-none border border-[#262626] bg-[#0D0D0F] p-1 text-[#FAFAFA] shadow-none",
         alignClass,
         className
       )}
@@ -119,7 +119,7 @@ export function DropdownMenuItem({
       disabled={disabled}
       onClick={handleClick}
       className={cn(
-        "relative flex w-full cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm outline-none transition-colors hover:bg-zinc-800/80 hover:text-zinc-50 disabled:pointer-events-none disabled:opacity-40 text-left font-medium",
+        "relative flex w-full cursor-pointer select-none items-center rounded-none px-3 py-1.5 text-xs outline-none transition-colors hover:bg-[#1F1F23] disabled:pointer-events-none disabled:opacity-40 text-left font-medium",
         className
       )}
     >

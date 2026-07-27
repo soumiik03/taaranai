@@ -30,16 +30,16 @@ export function WorkspaceSwitcher({
         <button
           type="button"
           disabled={isPending}
-          className="group flex items-center gap-2.5 rounded-md border border-[#1F1F23] bg-[#111113] px-3 py-1.5 text-xs font-medium text-[#F5F5F5] hover:bg-[#161619] hover:border-[#2F2F35] transition-colors outline-none cursor-pointer"
+          className="group flex items-center gap-2.5 rounded-none border border-[#262626] bg-[#0D0D0F] px-2.5 py-1 text-xs font-medium text-[#FAFAFA] hover:bg-[#1F1F23] transition-colors outline-none cursor-pointer"
         >
-          <div className="flex size-4 items-center justify-center rounded bg-[#7C6EF2]/20 text-[10px] font-bold text-[#7C6EF2]">
+          <div className="flex size-4 items-center justify-center rounded-full border border-[#262626] bg-[#0D0D0F] text-[10px] font-bold text-[#FAFAFA]">
             {activeInitial}
           </div>
           <span className="truncate max-w-[140px] font-medium">{displayName}</span>
-          <ChevronDown className="size-3.5 text-[#8A8A93] group-hover:text-[#F5F5F5] transition-colors ml-0.5" />
+          <ChevronDown className="size-3 text-[#8B8B92] group-hover:text-[#FAFAFA] transition-colors ml-0.5" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-56 border-[#1F1F23] bg-[#111113] p-1 shadow-none rounded-md">
+      <DropdownMenuContent align="start" className="w-52 border-[#262626] bg-[#0D0D0F] p-1 shadow-none rounded-none">
         {organizations.map((org) => {
           const isSelected = org.id === activeOrgId
           return (
@@ -47,15 +47,15 @@ export function WorkspaceSwitcher({
               key={org.id}
               disabled={isSelected}
               onClick={() => startTransition(() => switchWorkspace(org.id))}
-              className="flex items-center justify-between px-3 py-2 text-xs text-[#F5F5F5] hover:bg-[#1F1F23]/60 rounded cursor-pointer font-medium"
+              className="flex items-center justify-between px-2.5 py-1.5 text-xs text-[#FAFAFA] hover:bg-[#1F1F23] rounded-none cursor-pointer font-medium"
             >
               <div className="flex items-center gap-2 truncate">
-                <div className="flex size-4 items-center justify-center rounded bg-zinc-800 text-[10px] font-bold text-zinc-300">
+                <div className="flex size-4 items-center justify-center rounded-full border border-[#262626] bg-[#0D0D0F] text-[10px] font-bold text-[#FAFAFA]">
                   {org.name.substring(0, 1).toUpperCase()}
                 </div>
                 <span className="truncate">{org.name}</span>
               </div>
-              {isSelected && <Check className="size-3.5 text-[#7C6EF2]" />}
+              {isSelected && <Check className="size-3.5 text-[#FAFAFA]" />}
             </DropdownMenuItem>
           )
         })}

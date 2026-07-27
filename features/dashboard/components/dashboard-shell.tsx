@@ -26,7 +26,7 @@ export function DashboardShell({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[#0A0A0B] text-[#F5F5F5] font-sans antialiased">
+    <div className="flex h-screen w-full overflow-hidden bg-[#0A0A0A] text-[#FAFAFA] font-sans antialiased">
       {/* Desktop Sidebar (Fixed 260px) */}
       <div className="hidden lg:flex h-full shrink-0">
         <DashboardSidebar />
@@ -42,7 +42,7 @@ export function DashboardShell({
 
       {/* Mobile Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-[260px] transform bg-[#0A0A0B] transition-transform duration-200 lg:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 w-[260px] transform bg-[#0A0A0A] transition-transform duration-200 lg:hidden ${
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -52,12 +52,12 @@ export function DashboardShell({
       {/* Main Right Body */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top Navbar */}
-        <header className="flex h-14 shrink-0 items-center justify-between border-b border-[#1F1F23] bg-[#0A0A0B] px-4 lg:px-6">
+        <header className="flex h-14 shrink-0 items-center justify-between border-b border-[#262626] bg-[#0A0A0A] px-4 lg:px-6">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setMobileMenuOpen((prev) => !prev)}
-              className="flex size-8 items-center justify-center rounded border border-[#1F1F23] bg-[#111113] text-[#8A8A93] hover:text-[#F5F5F5] lg:hidden"
+              className="flex size-8 items-center justify-center rounded-none border border-[#262626] bg-[#0D0D0F] text-[#8B8B92] hover:text-[#FAFAFA] lg:hidden"
             >
               {mobileMenuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
             </button>
@@ -69,29 +69,29 @@ export function DashboardShell({
             />
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             {/* Search Input Box */}
-            <div className="hidden sm:flex items-center gap-2 px-2.5 py-1.5 rounded border border-[#1F1F23] bg-[#111113] text-xs text-[#8A8A93] w-48 lg:w-56 cursor-pointer hover:border-[#2F2F35] transition-colors">
-              <Search className="size-3.5 text-[#8A8A93]" />
-              <span className="flex-1 text-[#8A8A93]">Search...</span>
-              <kbd className="font-mono text-[10px] bg-[#1F1F23] px-1 py-0.2 rounded text-[#8A8A93]">
+            <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-none border border-[#262626] bg-[#0D0D0F] text-xs text-[#8B8B92] w-48 lg:w-56 cursor-pointer hover:border-[#404040] transition-colors">
+              <Search className="size-3.5 text-[#8B8B92]" />
+              <span className="flex-1 text-[#8B8B92]">Search...</span>
+              <kbd className="font-mono text-[10px] bg-[#1F1F23] px-1.5 py-0.2 rounded-none text-[#8B8B92]">
                 ⌘K
               </kbd>
             </div>
 
-            {/* Quick Action Button (+ New) */}
+            {/* Outlined Action Button (+ New) */}
             <button
               type="button"
-              className="px-3 py-1 rounded border border-[#1F1F23] bg-[#111113] text-xs font-medium text-[#F5F5F5] hover:bg-[#1A1A1E] hover:border-[#2F2F35] transition-colors flex items-center gap-1.5"
+              className="px-2.5 py-1 rounded-none border border-[#262626] bg-[#0D0D0F] text-xs font-medium text-[#FAFAFA] hover:bg-[#1F1F23] transition-colors flex items-center gap-1"
             >
-              <Plus className="size-3.5 text-[#8A8A93]" />
+              <Plus className="size-3.5 text-[#FAFAFA]" />
               <span>New</span>
             </button>
 
-            {/* Upgrade Pill */}
+            {/* Outlined Upgrade Button */}
             <button
               type="button"
-              className="hidden md:flex px-3 py-1 rounded border border-[#7C6EF2]/40 bg-[#7C6EF2]/10 text-xs font-medium text-[#7C6EF2] hover:bg-[#7C6EF2]/20 transition-colors"
+              className="hidden md:flex px-2.5 py-1 rounded-none border border-[#262626] bg-[#0D0D0F] text-xs font-medium text-[#FAFAFA] hover:bg-[#1F1F23] transition-colors"
             >
               Upgrade
             </button>
@@ -99,7 +99,7 @@ export function DashboardShell({
             {/* Help / Docs */}
             <button
               type="button"
-              className="flex size-7 items-center justify-center rounded border border-[#1F1F23] bg-[#111113] text-[#8A8A93] hover:text-[#F5F5F5] transition-colors"
+              className="flex size-7 items-center justify-center rounded-none border border-[#262626] bg-[#0D0D0F] text-[#8B8B92] hover:text-[#FAFAFA] transition-colors"
               title="Documentation & Help"
             >
               <HelpCircle className="size-3.5" />
@@ -111,7 +111,7 @@ export function DashboardShell({
         </header>
 
         {/* Page Content View */}
-        <main className="flex-1 overflow-y-auto bg-[#0A0A0B] p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto bg-[#0A0A0A] p-6 lg:p-8">
           {children}
         </main>
       </div>

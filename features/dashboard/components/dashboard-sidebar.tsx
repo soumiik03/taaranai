@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { navSections } from '../lib/routes'
 import { cn } from '@/lib/utils'
-import { ChevronUp } from 'lucide-react'
+import { Command, ChevronUp } from 'lucide-react'
 
 interface DashboardSidebarProps {
   onCloseMobile?: () => void
@@ -15,14 +15,12 @@ export function DashboardSidebar({ onCloseMobile }: DashboardSidebarProps) {
   const pathname = usePathname()
 
   return (
-    <aside className="flex h-full w-[260px] flex-col bg-[#0A0A0B] border-r border-[#1F1F23] text-[#F5F5F5] select-none shrink-0 font-sans">
-      {/* Top Header Logo Icon (Render style: simple icon/logo top-left) */}
-      <div className="flex h-14 items-center px-5 border-b border-[#1F1F23]">
-        <Link href="/dashboard" className="flex items-center gap-2.5">
-          <div className="flex size-6 items-center justify-center rounded bg-[#7C6EF2] text-white font-bold text-xs tracking-tighter">
-            T
-          </div>
-          <span className="text-sm font-semibold tracking-tight text-[#F5F5F5]">
+    <aside className="flex h-full w-[260px] flex-col bg-[#0A0A0A] border-r border-[#262626] text-[#FAFAFA] select-none shrink-0 font-sans">
+      {/* Top Header Logo */}
+      <div className="flex h-14 items-center px-5 border-b border-[#262626]">
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <Command className="size-4 text-[#FAFAFA]" />
+          <span className="text-sm font-semibold tracking-tight text-[#FAFAFA]">
             Taaran AI
           </span>
         </Link>
@@ -31,10 +29,10 @@ export function DashboardSidebar({ onCloseMobile }: DashboardSidebarProps) {
       {/* Navigation Sections */}
       <div className="flex-1 overflow-y-auto py-3 space-y-6">
         {navSections.map((section, idx) => (
-          <div key={idx} className="px-3 space-y-1">
+          <div key={idx} className="space-y-1">
             {section.title && (
-              <div className="px-3 pb-1.5 pt-1">
-                <span className="text-[11px] font-medium tracking-wider text-[#8A8A93] uppercase">
+              <div className="px-5 pb-1.5 pt-1">
+                <span className="text-[11px] font-medium tracking-wider text-[#8B8B92] uppercase">
                   {section.title}
                 </span>
               </div>
@@ -54,16 +52,16 @@ export function DashboardSidebar({ onCloseMobile }: DashboardSidebarProps) {
                     href={route.href}
                     onClick={onCloseMobile}
                     className={cn(
-                      'group flex items-center gap-3 px-3 py-2 text-xs font-medium transition-colors rounded-r-md',
+                      'group flex items-center gap-2.5 px-5 py-2 text-xs font-medium transition-colors rounded-none',
                       isActive
-                        ? 'bg-[#7C6EF2]/12 text-[#F5F5F5] border-l-2 border-[#7C6EF2]'
-                        : 'text-[#8A8A93] hover:bg-[#111113] hover:text-[#F5F5F5] border-l-2 border-transparent'
+                        ? 'bg-[#6C5DD3]/25 text-[#FAFAFA]'
+                        : 'text-[#8B8B92] hover:bg-[#0D0D0F] hover:text-[#FAFAFA]'
                     )}
                   >
                     <Icon
                       className={cn(
                         'size-4 shrink-0 transition-colors',
-                        isActive ? 'text-[#7C6EF2]' : 'text-[#8A8A93] group-hover:text-[#F5F5F5]'
+                        isActive ? 'text-[#6C5DD3]' : 'text-[#8B8B92] group-hover:text-[#FAFAFA]'
                       )}
                     />
                     <span className="truncate">{route.label}</span>
@@ -75,14 +73,14 @@ export function DashboardSidebar({ onCloseMobile }: DashboardSidebarProps) {
         ))}
       </div>
 
-      {/* Footer System Status Banner (Render status style) */}
-      <div className="p-3 border-t border-[#1F1F23]">
-        <div className="flex items-center justify-between px-3 py-2 rounded-md hover:bg-[#111113] transition-colors cursor-pointer text-xs text-[#8A8A93]">
+      {/* Footer System Status Banner */}
+      <div className="p-3 border-t border-[#262626]">
+        <div className="flex items-center justify-between px-3 py-2 rounded-none hover:bg-[#0D0D0F] transition-colors cursor-pointer text-xs text-[#8B8B92]">
           <div className="flex items-center gap-2">
             <span className="size-2 rounded-full bg-[#22C55E] inline-block" />
-            <span className="text-xs font-medium text-[#F5F5F5]">Taaran Status</span>
+            <span className="text-xs font-medium text-[#FAFAFA]">Render Status</span>
           </div>
-          <ChevronUp className="size-3.5 text-[#8A8A93]" />
+          <ChevronUp className="size-3.5 text-[#8B8B92]" />
         </div>
       </div>
     </aside>
