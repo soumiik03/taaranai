@@ -46,16 +46,6 @@ export async function getServerSession() {
   }
 }
 
-export async function requireAuth(redirectTo = SIGN_IN_PATH) {
-  const session = await getServerSession();
-
-  if (!session) {
-    redirect(redirectTo);
-  }
-
-  return session;
-}
-
 export async function requireUnauth(redirectTo = DEFAULT_AUTH_CALLBACK) {
   const session = await getServerSession();
 

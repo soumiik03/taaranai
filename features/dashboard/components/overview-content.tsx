@@ -5,7 +5,6 @@ import { getStatusStyle, StatusType } from '../lib/status-styles'
 import {
   Sparkles,
   FileText,
-  GitPullRequest,
   CheckCircle2,
   Plus,
   GitBranch,

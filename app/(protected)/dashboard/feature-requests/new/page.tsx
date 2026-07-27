@@ -6,7 +6,7 @@ export default function NewFeatureRequestPage() {
       <div>
         <h1 className="text-2xl font-semibold">New Feature Request</h1>
         <p className="text-sm text-muted-foreground">
-          Describe what needs to be built. You'll be asked clarifying questions next.
+          Describe what needs to be built. You&apos;ll be asked clarifying questions next.
         </p>
       </div>
       <RequestForm mode="create" />

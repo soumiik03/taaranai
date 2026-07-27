@@ -18,7 +18,7 @@ export default async function CreateWorkspacePage() {
         <div>
           <h1 className="text-xl font-semibold">Create your workspace</h1>
           <p className="text-sm text-zinc-400">
-            This is where your team's feature requests, PRDs, and repos will live.
+            This is where your team&apos;s feature requests, PRDs, and repos will live.
           </p>
         </div>
         <WorkspaceForm />
