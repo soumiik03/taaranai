@@ -15,6 +15,7 @@ interface DashboardShellProps {
     email?: string | null
     image?: string | null
   } | null
+  isAiWorking?: boolean
 }
 
 export function DashboardShell({
@@ -22,6 +23,7 @@ export function DashboardShell({
   organizations,
   activeOrgId,
   user,
+  isAiWorking,
 }: DashboardShellProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -29,7 +31,7 @@ export function DashboardShell({
     <div className="flex h-screen w-full overflow-hidden bg-[#0A0A0A] text-[#FAFAFA] font-sans antialiased">
       {/* Desktop Sidebar (Fixed 260px) */}
       <div className="hidden lg:flex h-full shrink-0">
-        <DashboardSidebar />
+        <DashboardSidebar isAiWorking={isAiWorking} />
       </div>
 
       {/* Mobile Drawer Overlay */}
@@ -46,7 +48,7 @@ export function DashboardShell({
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <DashboardSidebar onCloseMobile={() => setMobileMenuOpen(false)} />
+        <DashboardSidebar isAiWorking={isAiWorking} onCloseMobile={() => setMobileMenuOpen(false)} />
       </div>
 
       {/* Main Right Body */}

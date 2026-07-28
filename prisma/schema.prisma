@@ -93,6 +93,7 @@ model Organization {
   githubInstallationId String?
 
    clarificationQuestions ClarificationQuestion[]
+   prds PRD[]
 }
 
 model Member {
@@ -150,6 +151,8 @@ model FeatureRequest {
   @@index([projectId])
 
   clarificationQuestions ClarificationQuestion[]
+
+  prd PRD?
 }
 
 enum FeatureSourceType {
@@ -189,4 +192,34 @@ model ClarificationQuestion {
 enum ClarificationStatus {
   PENDING
   ANSWERED
+}
+
+model PRD {
+  id String @id @default(cuid())
+
+  problemStatement String @db.Text
+  goals            Json
+  nonGoals         Json
+  userStories      Json
+  acceptanceCriteria Json
+  edgeCases        Json
+  successMetrics   Json
+
+  status PRDStatus @default(DRAFT)
+
+  featureRequestId String @unique
+  featureRequest   FeatureRequest @relation(fields: [featureRequestId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+}
+
+enum PRDStatus {
+  DRAFT
+  APPROVED
 }

@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   Sparkles,
+  HelpCircle,
   FileText,
   Kanban,
   GitBranch,
@@ -27,8 +28,9 @@ export const navSections: NavSection[] = [
   {
     routes: [
       { label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-      { label: 'Feature Requests', href: '/dashboard/features', icon: Sparkles },
-      { label: 'PRD Editor', href: '/dashboard/prds', icon: FileText },
+      { label: 'Feature Requests', href: '/dashboard/feature-requests', icon: Sparkles },
+      { label: 'AI Clarifications', href: '/dashboard/clarifications', icon: HelpCircle },
+      { label: 'PRD Editor', href: '/dashboard/prd', icon: FileText },
       { label: 'Task Board', href: '/dashboard/tasks', icon: Kanban },
     ],
   },

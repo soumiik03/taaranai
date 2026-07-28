@@ -31,11 +31,31 @@ export default async function DashboardLayout({
 
   const organizations = memberships.map((m) => m.organization)
 
+  const activeAiRequest = await prisma.featureRequest.findFirst({
+    where: {
+      organizationId: activeOrg.id,
+      OR: [
+        { status: 'PENDING' },
+        {
+          status: 'CLARIFYING',
+          clarificationQuestions: {
+            none: {
+              status: 'PENDING',
+            },
+          },
+        },
+      ],
+    },
+  })
+
+  const isAiWorking = Boolean(activeAiRequest)
+
   return (
     <DashboardShell
       organizations={organizations}
       activeOrgId={activeOrg.id}
       user={session.user}
+      isAiWorking={isAiWorking}
     >
       {children}
     </DashboardShell>

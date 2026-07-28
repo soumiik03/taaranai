@@ -9,9 +9,10 @@ import { Command, ChevronUp } from 'lucide-react'
 
 interface DashboardSidebarProps {
   onCloseMobile?: () => void
+  isAiWorking?: boolean
 }
 
-export function DashboardSidebar({ onCloseMobile }: DashboardSidebarProps) {
+export function DashboardSidebar({ onCloseMobile, isAiWorking }: DashboardSidebarProps) {
   const pathname = usePathname()
 
   return (
@@ -65,6 +66,12 @@ export function DashboardSidebar({ onCloseMobile }: DashboardSidebarProps) {
                       )}
                     />
                     <span className="truncate">{route.label}</span>
+                    {route.href === '/dashboard/feature-requests' && isAiWorking && (
+                      <span className="relative flex size-2 ml-auto shrink-0" title="AI is working">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full size-2 bg-indigo-500" />
+                      </span>
+                    )}
                   </Link>
                 )
               })}

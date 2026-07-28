@@ -4,7 +4,9 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import { getSession, getActiveOrganization } from '@/lib/session'
+import { inngest } from '@/lib/inngest/client'
 import { featureRequestSchema } from './schema'
+
 
 // Small helper repeated across every feature-scoped action from here on:
 // resolve who's asking AND which org they're acting within, in one place,
@@ -55,7 +57,13 @@ export async function createFeatureRequest(formData: FormData) {
     },
   })
 
+  await inngest.send({
+    name: 'feature-request/created',
+    data: { featureRequestId: featureRequest.id },
+  })
+
   revalidatePath('/dashboard/feature-requests')
+
   redirect(`/dashboard/feature-requests/${featureRequest.id}`)
 }
 
@@ -115,5 +123,48 @@ export async function getFeatureRequest(id: string) {
 
   return prisma.featureRequest.findFirst({
     where: { id, organizationId: org.id },
+    include: { prd: true },
   })
+}
+
+
+export async function getClarificationQuestions(featureRequestId: string) {
+  const { org } = await requireOrgContext()
+
+  return prisma.clarificationQuestion.findMany({
+    where: { featureRequestId, organizationId: org.id },
+    orderBy: { createdAt: 'asc' },
+  })
+}
+
+export async function answerClarificationQuestion(
+  questionId: string,
+  answer: string
+) {
+  const { org } = await requireOrgContext()
+
+  const question = await prisma.clarificationQuestion.findFirst({
+    where: { id: questionId, organizationId: org.id },
+  })
+  if (!question) throw new Error('Question not found')
+
+  await prisma.clarificationQuestion.update({
+    where: { id: questionId },
+    data: { answer, status: 'ANSWERED' },
+  })
+
+  const remainingPending = await prisma.clarificationQuestion.count({
+    where: { featureRequestId: question.featureRequestId, status: 'PENDING' },
+  })
+
+  // Last question just answered — hand back to the AI to decide if this
+  // is enough context now, or if it needs to ask follow-ups.
+  if (remainingPending === 0) {
+    await inngest.send({
+      name: 'feature-request/clarification-answered',
+      data: { featureRequestId: question.featureRequestId },
+    })
+  }
+
+  revalidatePath(`/dashboard/feature-requests/${question.featureRequestId}`)
 }
