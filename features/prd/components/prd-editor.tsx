@@ -22,6 +22,7 @@ import {
   Users,
   FileText,
   Loader2,
+  Kanban,
 } from 'lucide-react'
 
 type UserStory = { role: string; story: string }
@@ -176,7 +177,7 @@ function InteractiveListSection({
 
 function cleanUserStoryText(role: string, story: string) {
   // Fix duplicate "As a Developer, As a Developer..." prefixes
-  let text = story.trim()
+  const text = story.trim()
   if (/^as a /i.test(text)) {
     return text
   }
@@ -275,7 +276,13 @@ export function PrdEditor({ prd }: { prd: Prd }) {
               Delete PRD
             </Button>
 
-            {!isApproved && (
+            {isApproved ? (
+              <Link href={`/dashboard/tasks/${prd.id}`}>
+                <Button size="sm" variant="default" className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white">
+                  <Kanban className="h-4 w-4" /> View Task Board
+                </Button>
+              </Link>
+            ) : (
               <Button
                 size="sm"
                 onClick={() => startApprove(() => approvePrd(prd.id))}

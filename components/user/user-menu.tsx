@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import React, { useTransition } from 'react'
 import {
   DropdownMenu,
@@ -33,9 +34,11 @@ export function UserMenu({ user }: UserMenuProps) {
           className="flex size-7 items-center justify-center rounded-full bg-[#22C55E] text-xs font-bold text-white transition-opacity hover:opacity-90 outline-none cursor-pointer"
         >
           {user?.image ? (
-            <img
+            <Image
               src={user.image}
               alt={displayName}
+              width={28}
+              height={28}
               className="size-7 rounded-full object-cover"
             />
           ) : (

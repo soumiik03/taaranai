@@ -140,7 +140,7 @@ export const recheckClarification = inngest.createFunction(
 
     const aiResult = await step.run('recheck-with-ai', async () => {
       const qaText = context.questions
-        .map((q: any) => `Q: ${q.question}\nA: ${q.answer}`)
+        .map((q) => `Q: ${q.question}\nA: ${q.answer}`)
         .join('\n\n')
 
       const { object } = await generateObject({

@@ -25,7 +25,7 @@ export default async function PrdPage({
 
     return (
         <div className="p-8">
-            <PrdEditor prd={prd as any} />
+            <PrdEditor prd={prd as unknown as Parameters<typeof PrdEditor>[0]['prd']} />
         </div>
     )
 }

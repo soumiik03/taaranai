@@ -17,7 +17,7 @@ export function StatusPoller({
   intervalMs = 2500,
 }: StatusPollerProps) {
   const router = useRouter()
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
 
   useEffect(() => {
     // If status is READY and PRD has been generated, auto-redirect immediately

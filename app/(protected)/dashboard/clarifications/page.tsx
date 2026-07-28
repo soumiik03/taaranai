@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { getClarificationQuestions } from '@/features/requests/actions'
 import { ClarificationChat } from '@/features/requests/components/clarification-chat'
 import { StatusPoller } from '@/features/requests/components/status-poller'
-import { HelpCircle, Sparkles, CheckCircle2, MessageSquare, ArrowRight, Clock } from 'lucide-react'
+import { HelpCircle, Sparkles, CheckCircle2, MessageSquare, ArrowRight } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,7 +40,7 @@ export default async function ClarificationsPage({
     requests[0] ||
     null
 
-  let questions: any[] = []
+  let questions: Awaited<ReturnType<typeof getClarificationQuestions>> = []
   if (activeRequest && activeRequest.status === 'CLARIFYING') {
     questions = await getClarificationQuestions(activeRequest.id)
   }

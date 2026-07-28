@@ -6,7 +6,6 @@ import {
   deleteFeatureRequest,
 } from '@/features/requests/actions'
 import { RequestForm } from '@/features/requests/components/request-form'
-import { ClarificationChat } from '@/features/requests/components/clarification-chat'
 import { StatusPoller } from '@/features/requests/components/status-poller'
 import { Button } from '@/components/ui/button'
 
@@ -29,7 +28,7 @@ export default async function FeatureRequestDetailPage({
   const questions =
     request.status === 'CLARIFYING' ? await getClarificationQuestions(id) : []
   const hasPendingQuestions = questions.some((q) => q.status === 'PENDING')
-  const prdId = (request as any).prd?.id ?? null
+  const prdId = request.prd?.id ?? null
 
   return (
     <div className="p-8 max-w-3xl mx-auto space-y-6">
