@@ -91,6 +91,8 @@ model Organization {
   featureRequests FeatureRequest[]
   // Will be filled in during Chapter 7
   githubInstallationId String?
+
+   clarificationQuestions ClarificationQuestion[]
 }
 
 model Member {
@@ -146,6 +148,8 @@ model FeatureRequest {
 
   @@index([organizationId])
   @@index([projectId])
+
+  clarificationQuestions ClarificationQuestion[]
 }
 
 enum FeatureSourceType {
@@ -160,4 +164,29 @@ enum FeatureRequestStatus {
   CLARIFYING
   READY
   REJECTED
+}
+
+model ClarificationQuestion {
+  id       String @id @default(cuid())
+  question String @db.Text
+  answer   String? @db.Text
+
+  status ClarificationStatus @default(PENDING)
+
+  featureRequestId String
+  featureRequest    FeatureRequest @relation(fields: [featureRequestId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([featureRequestId])
+  @@index([organizationId])
+}
+
+enum ClarificationStatus {
+  PENDING
+  ANSWERED
 }
