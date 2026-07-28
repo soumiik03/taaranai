@@ -5,6 +5,8 @@ import {
   getClarificationQuestions,
   deleteFeatureRequest,
 } from '@/features/requests/actions'
+import { getLatestFixNeededForFeatureRequest } from '@/features/reviews/actions'
+import { FixNeededBanner } from '@/features/reviews/components/fix-needed-banner'
 import { RequestForm } from '@/features/requests/components/request-form'
 import { StatusPoller } from '@/features/requests/components/status-poller'
 import { Button } from '@/components/ui/button'
@@ -29,6 +31,8 @@ export default async function FeatureRequestDetailPage({
     request.status === 'CLARIFYING' ? await getClarificationQuestions(id) : []
   const hasPendingQuestions = questions.some((q) => q.status === 'PENDING')
   const prdId = request.prd?.id ?? null
+
+  const fixNeededData = await getLatestFixNeededForFeatureRequest(id)
 
   return (
     <div className="p-8 max-w-3xl mx-auto space-y-6">
@@ -57,6 +61,11 @@ export default async function FeatureRequestDetailPage({
           </Button>
         </form>
       </div>
+
+      {/* Fix Needed Banner */}
+      {fixNeededData && (
+        <FixNeededBanner data={fixNeededData} />
+      )}
 
       {/* Status Notice Banners */}
       {request.status === 'CLARIFYING' && (
@@ -98,4 +107,4 @@ export default async function FeatureRequestDetailPage({
       />
     </div>
   )
-}
+}

@@ -38,7 +38,58 @@ export const reviewPRFunction = inngest.createFunction(
     }))
 
     const status = issues.some((issue) => issue.severity === 'blocking') ? 'FIX_NEEDED' : 'READY_FOR_APPROVAL'
-    await step.run('update-pull-request-status', async () => prisma.pullRequest.update({ where: { id: context.pullRequest.id }, data: { status } }))
+
+    await step.run('record-review-run', async () => {
+      const existingRuns = await prisma.reviewRun.findMany({
+        where: { pullRequestId: context.pullRequest.id },
+        include: { issues: true },
+        orderBy: { iteration: 'desc' },
+      })
+
+      const iteration = existingRuns.length + 1
+
+      // Mark resolved issues in previous run if they are no longer present in current issues
+      if (existingRuns.length > 0) {
+        const lastRun = existingRuns[0]
+        const currentIssueKeys = new Set(issues.map((i) => `${i.file}:${i.title}`))
+
+        for (const prevIssue of lastRun.issues) {
+          const key = `${prevIssue.file}:${prevIssue.title}`
+          if (!currentIssueKeys.has(key) && !prevIssue.resolved) {
+            await prisma.reviewIssue.update({
+              where: { id: prevIssue.id },
+              data: { resolved: true },
+            })
+          }
+        }
+      }
+
+      await prisma.reviewRun.create({
+        data: {
+          pullRequestId: context.pullRequest.id,
+          iteration,
+          status,
+          commitSha: context.pullRequest.headSha,
+          issues: {
+            create: issues.map((issue) => ({
+              severity: issue.severity,
+              title: issue.title,
+              body: issue.body,
+              file: issue.file,
+              line: issue.line,
+              resolved: false,
+            })),
+          },
+        },
+      })
+
+      await prisma.pullRequest.update({
+        where: { id: context.pullRequest.id },
+        data: { status },
+      })
+    })
+
     return { pullRequestId: context.pullRequest.id, chunksReviewed: chunks.length, issuesFound: issues.length, status, model: env.OPENROUTER_API_KEY ? 'openai/gpt-4o-mini' : 'unconfigured' }
   }
 )
+

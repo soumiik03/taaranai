@@ -11,11 +11,47 @@ export default async function DashboardPage() {
 
   if (!activeOrg) return null
 
-  const [totalRequests, pendingRequests, readyRequests, projectsCount, recentRequests] = await Promise.all([
+  const now = new Date()
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+
+  const [
+    totalRequests,
+    prdsThisMonth,
+    activeReviews,
+    featuresShipped,
+    blockingIssues,
+    recentRequests,
+  ] = await Promise.all([
     prisma.featureRequest.count({ where: { organizationId: activeOrg.id } }),
-    prisma.featureRequest.count({ where: { organizationId: activeOrg.id, status: 'PENDING' } }),
-    prisma.featureRequest.count({ where: { organizationId: activeOrg.id, status: 'READY' } }),
-    prisma.project.count({ where: { organizationId: activeOrg.id } }),
+    prisma.pRD.count({
+      where: {
+        organizationId: activeOrg.id,
+        createdAt: { gte: startOfMonth },
+      },
+    }),
+    prisma.pullRequest.count({
+      where: {
+        organizationId: activeOrg.id,
+        status: { in: ['REVIEWING', 'FIX_NEEDED'] },
+      },
+    }),
+    prisma.pullRequest.count({
+      where: {
+        organizationId: activeOrg.id,
+        status: 'SHIPPED',
+      },
+    }),
+    prisma.reviewIssue.count({
+      where: {
+        reviewRun: {
+          pullRequest: {
+            organizationId: activeOrg.id,
+          },
+        },
+        severity: 'blocking',
+        resolved: false,
+      },
+    }),
     prisma.featureRequest.findMany({
       where: { organizationId: activeOrg.id },
       orderBy: { createdAt: 'desc' },
@@ -25,23 +61,24 @@ export default async function DashboardPage() {
 
   const metrics = {
     totalRequests,
-    pendingRequests,
-    readyRequests,
-    projectsCount,
+    prdsThisMonth,
+    activeReviews,
+    featuresShipped,
+    blockingIssues,
   }
 
-  const recentActivities = recentRequests.map(req => ({
+  const recentActivities = recentRequests.map((req) => ({
     id: req.id,
     title: req.title,
     type: 'Feature Request',
     status: req.status as StatusType,
     timestamp: formatDistanceToNow(req.createdAt, { addSuffix: true }),
-    author: 'System', // Since we don't have author on FeatureRequest yet
+    author: 'System',
   }))
 
   return (
-    <OverviewContent 
-      orgName={activeOrg.name} 
+    <OverviewContent
+      orgName={activeOrg.name}
       hasGithubConnection={!!activeOrg.githubInstallationId}
       metrics={metrics}
       recentActivities={recentActivities}

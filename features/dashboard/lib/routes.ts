@@ -7,6 +7,7 @@ import {
   GitBranch,
   GitPullRequest,
   History,
+  Ship,
   CreditCard,
   Settings,
   LucideIcon,
@@ -35,11 +36,11 @@ export const navSections: NavSection[] = [
     ],
   },
   {
-    title: 'INTEGRATIONS',
+    title: 'INTEGRATIONS & RELEASES',
     routes: [
       { label: 'GitHub', href: '/dashboard/github', icon: GitBranch },
       { label: 'Pull Requests', href: '/dashboard/pull-requests', icon: GitPullRequest },
-      { label: 'Review History', href: '/dashboard/reviews', icon: History },
+      { label: 'Shipped Features', href: '/dashboard/shipped', icon: Ship },
     ],
   },
   {
@@ -50,3 +51,4 @@ export const navSections: NavSection[] = [
     ],
   },
 ]
+

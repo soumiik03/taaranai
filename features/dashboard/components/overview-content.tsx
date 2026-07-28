@@ -12,6 +12,9 @@ import {
   ChevronRight,
   ExternalLink,
   Check,
+  GitPullRequest,
+  Ship,
+  AlertOctagon,
 } from 'lucide-react'
 
 interface OverviewContentProps {
@@ -19,9 +22,10 @@ interface OverviewContentProps {
   hasGithubConnection: boolean
   metrics: {
     totalRequests: number
-    pendingRequests: number
-    readyRequests: number
-    projectsCount: number
+    prdsThisMonth: number
+    activeReviews: number
+    featuresShipped: number
+    blockingIssues: number
   }
   recentActivities: {
     id: string
@@ -38,28 +42,35 @@ export function OverviewContent({ orgName, hasGithubConnection, metrics, recentA
     {
       title: 'Total Feature Requests',
       value: metrics.totalRequests.toString(),
-      change: 'All time',
+      change: 'All time in workspace',
       icon: Sparkles,
     },
     {
-      title: 'Pending Clarification',
-      value: metrics.pendingRequests.toString(),
-      change: 'Requires attention',
+      title: 'PRDs Generated',
+      value: metrics.prdsThisMonth.toString(),
+      change: 'This month',
       icon: FileText,
     },
     {
-      title: 'Ready for PRD',
-      value: metrics.readyRequests.toString(),
-      change: 'Fully specified',
-      icon: CheckCircle2,
+      title: 'Active PR Reviews',
+      value: metrics.activeReviews.toString(),
+      change: 'In review pipeline',
+      icon: GitPullRequest,
     },
     {
-      title: 'Active Projects',
-      value: metrics.projectsCount.toString(),
-      change: 'In this workspace',
-      icon: GitBranch,
+      title: 'Features Shipped',
+      value: metrics.featuresShipped.toString(),
+      change: 'Deployed to production',
+      icon: Ship,
+    },
+    {
+      title: 'Blocking Issues',
+      value: metrics.blockingIssues.toString(),
+      change: 'Requires developer fix',
+      icon: AlertOctagon,
     },
   ]
+
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto font-sans">
@@ -117,7 +128,8 @@ export function OverviewContent({ orgName, hasGithubConnection, metrics, recentA
       </div>
 
       {/* Overview Stat Cards (Sharp 0px box, #262626 border, #0D0D0F surface) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+
         {metricCards.map((metric, idx) => {
           const Icon = metric.icon
           return (

@@ -169,6 +169,7 @@ enum FeatureRequestStatus {
   CLARIFYING
   READY
   REJECTED
+  SHIPPED
 }
 
 model ClarificationQuestion {
@@ -277,8 +278,16 @@ model PullRequest {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  approvedByUserId String?
+  approvedByName   String?
+  approvedAt       DateTime?
+  approvalNotes    String?   @db.Text
+  shippedAt        DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  reviewRuns ReviewRun[]
 
   @@unique([organizationId, repoFullName, number])
   @@index([organizationId])
@@ -291,3 +300,37 @@ enum PullRequestStatus {
   READY_FOR_APPROVAL
   SHIPPED
 }
+
+model ReviewRun {
+  id            String            @id @default(cuid())
+  iteration     Int               @default(1)
+  status        PullRequestStatus
+  commitSha     String
+
+  pullRequestId String
+  pullRequest   PullRequest       @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+
+  issues        ReviewIssue[]
+
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([pullRequestId])
+}
+
+model ReviewIssue {
+  id          String    @id @default(cuid())
+  severity    String    // 'blocking' | 'non-blocking'
+  title       String
+  body        String    @db.Text
+  file        String
+  line        Int?
+  resolved    Boolean   @default(false)
+
+  reviewRunId String
+  reviewRun   ReviewRun @relation(fields: [reviewRunId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+
+  @@index([reviewRunId])
+}
