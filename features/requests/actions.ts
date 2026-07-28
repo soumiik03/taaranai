@@ -6,6 +6,9 @@ import { prisma } from '@/lib/db'
 import { getSession, getActiveOrganization } from '@/lib/session'
 import { inngest } from '@/lib/inngest/client'
 import { featureRequestSchema } from './schema'
+import { executeClarificationForRequest } from '@/lib/inngest/functions/clarify-request'
+import { executePrdGeneration } from '@/lib/inngest/functions/generate-prd'
+
 
 
 // Small helper repeated across every feature-scoped action from here on:
@@ -62,10 +65,11 @@ export async function createFeatureRequest(formData: FormData) {
     data: { featureRequestId: featureRequest.id },
   })
 
-  revalidatePath('/dashboard/feature-requests')
-
-  redirect(`/dashboard/feature-requests/${featureRequest.id}`)
+  // Let Inngest handle the AI clarification and PRD generation in the background.
+  // We'll redirect to the AI Processing view, which polls for status updates.
+  redirect(`/dashboard/clarifications?id=${featureRequest.id}&flow=new`)
 }
+
 
 export async function updateFeatureRequest(id: string, formData: FormData) {
   const { org } = await requireOrgContext()
@@ -106,8 +110,28 @@ export async function deleteFeatureRequest(id: string) {
   })
 
   revalidatePath('/dashboard/feature-requests')
+  revalidatePath('/dashboard/clarifications')
+  revalidatePath('/dashboard/prd')
+  revalidatePath('/dashboard/tasks')
+  revalidatePath('/dashboard')
   redirect('/dashboard/feature-requests')
 }
+
+export async function deleteFeatureRequestInline(id: string) {
+  const { org } = await requireOrgContext()
+
+  await prisma.featureRequest.deleteMany({
+    where: { id, organizationId: org.id },
+  })
+
+  revalidatePath('/dashboard/feature-requests')
+  revalidatePath('/dashboard/clarifications')
+  revalidatePath('/dashboard/prd')
+  revalidatePath('/dashboard/tasks')
+  revalidatePath('/dashboard')
+  return { success: true }
+}
+
 
 export async function getFeatureRequests() {
   const { org } = await requireOrgContext()
@@ -164,7 +188,19 @@ export async function answerClarificationQuestion(
       name: 'feature-request/clarification-answered',
       data: { featureRequestId: question.featureRequestId },
     })
+
+    const prd = await executePrdGeneration(question.featureRequestId)
+
+    revalidatePath('/dashboard/clarifications')
+    revalidatePath('/dashboard/prd')
+    revalidatePath(`/dashboard/feature-requests/${question.featureRequestId}`)
+
+    if (prd) {
+      return { success: true, status: 'READY', prdId: prd.id }
+    }
   }
 
   revalidatePath(`/dashboard/feature-requests/${question.featureRequestId}`)
+  revalidatePath('/dashboard/clarifications')
+  return { success: true, status: 'CLARIFYING' }
 }

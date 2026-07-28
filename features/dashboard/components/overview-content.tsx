@@ -1,16 +1,14 @@
 'use client'
 
+import { ChevronRight, GitBranch, ExternalLink } from 'lucide-react'
+
 import React from 'react'
 import { getStatusStyle, StatusType } from '../lib/status-styles'
 import {
   Sparkles,
   FileText,
-  CheckCircle2,
   Plus,
-  GitBranch,
   Clock,
-  ChevronRight,
-  ExternalLink,
   Check,
   GitPullRequest,
   Ship,

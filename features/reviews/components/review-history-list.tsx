@@ -1,16 +1,16 @@
 'use client'
 
+import { CheckCircle2 } from 'lucide-react'
+
 import { useState } from 'react'
 import {
-  CheckCircle2,
   XCircle,
   Clock,
   GitCommit,
   FileCode,
-  Check,
-  AlertTriangle,
   ChevronDown,
   ChevronUp,
+  Check,
 } from 'lucide-react'
 
 export interface ReviewIssueData {
@@ -35,14 +35,12 @@ export interface ReviewRunData {
 
 interface ReviewHistoryListProps {
   reviewRuns: ReviewRunData[]
-  prNumber: number
-  repoFullName: string
+  prNumber?: number
+  repoFullName?: string
 }
 
 export function ReviewHistoryList({
   reviewRuns,
-  prNumber,
-  repoFullName,
 }: ReviewHistoryListProps) {
   const [expandedRunIds, setExpandedRunIds] = useState<Record<string, boolean>>(() => {
     // Expand the latest run by default

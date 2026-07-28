@@ -18,6 +18,64 @@ const prdSchema = z.object({
   successMetrics: z.array(z.string()),
 })
 
+export async function executePrdGeneration(featureRequestId: string) {
+  const featureRequest = await prisma.featureRequest.findUnique({
+    where: { id: featureRequestId },
+  })
+  if (!featureRequest) return null
+
+  const clarifications = await prisma.clarificationQuestion.findMany({
+    where: { featureRequestId },
+    orderBy: { createdAt: 'asc' },
+  })
+
+
+    const { object: prdData } = await generateObject({
+      model: clarificationModel,
+      schema: prdSchema,
+      prompt: buildPrdPrompt(
+        featureRequest.title,
+        featureRequest.description,
+        clarifications.map((c) => ({
+          question: c.question,
+          answer: c.answer,
+        }))
+      ),
+    })
+
+    const prd = await prisma.pRD.upsert({
+      where: { featureRequestId },
+      create: {
+        featureRequestId,
+        organizationId: featureRequest.organizationId,
+        problemStatement: prdData.problemStatement,
+        goals: prdData.goals,
+        nonGoals: prdData.nonGoals,
+        userStories: prdData.userStories,
+        acceptanceCriteria: prdData.acceptanceCriteria,
+        edgeCases: prdData.edgeCases,
+        successMetrics: prdData.successMetrics,
+        status: 'DRAFT',
+      },
+      update: {
+        problemStatement: prdData.problemStatement,
+        goals: prdData.goals,
+        nonGoals: prdData.nonGoals,
+        userStories: prdData.userStories,
+        acceptanceCriteria: prdData.acceptanceCriteria,
+        edgeCases: prdData.edgeCases,
+        successMetrics: prdData.successMetrics,
+      },
+    })
+
+    await prisma.featureRequest.update({
+      where: { id: featureRequestId },
+      data: { status: 'READY' },
+    })
+
+    return prd
+}
+
 export const generatePrd = inngest.createFunction(
   {
     id: 'generate-prd',
@@ -25,50 +83,8 @@ export const generatePrd = inngest.createFunction(
   },
   async ({ event, step }) => {
     const { featureRequestId } = event.data
-
-    const context = await step.run('fetch-context', async () => {
-      const featureRequest = await prisma.featureRequest.findUniqueOrThrow({
-        where: { id: featureRequestId },
-      })
-      const clarifications = await prisma.clarificationQuestion.findMany({
-        where: { featureRequestId },
-        orderBy: { createdAt: 'asc' },
-      })
-      return { featureRequest, clarifications }
-    })
-
-    const prdData = await step.run('generate-prd-content', async () => {
-      const { object } = await generateObject({
-        model: clarificationModel,
-        schema: prdSchema,
-        prompt: buildPrdPrompt(
-          context.featureRequest.title,
-          context.featureRequest.description,
-          context.clarifications.map((c) => ({
-            question: c.question,
-            answer: c.answer,
-          }))
-        ),
-      })
-      return object
-    })
-
-    const prd = await step.run('save-prd', async () => {
-      return prisma.pRD.create({
-        data: {
-          featureRequestId,
-          organizationId: context.featureRequest.organizationId,
-          problemStatement: prdData.problemStatement,
-          goals: prdData.goals,
-          nonGoals: prdData.nonGoals,
-          userStories: prdData.userStories,
-          acceptanceCriteria: prdData.acceptanceCriteria,
-          edgeCases: prdData.edgeCases,
-          successMetrics: prdData.successMetrics,
-        },
-      })
-    })
-
-    return { prdId: prd.id }
+    const prd = await step.run('execute-prd-gen', () => executePrdGeneration(featureRequestId))
+    return { prdId: prd?.id }
   }
 )
+

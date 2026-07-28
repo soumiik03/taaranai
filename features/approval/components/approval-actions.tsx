@@ -35,8 +35,8 @@ export function ApprovalActions({
           router.push('/dashboard/shipped')
           router.refresh()
         }
-      } catch (err: any) {
-        setErrorMessage(err.message || 'Failed to approve feature.')
+      } catch (err: unknown) {
+        setErrorMessage(err instanceof Error ? err.message : 'Failed to approve feature.')
       }
     })
   }
@@ -58,8 +58,8 @@ export function ApprovalActions({
           router.push(`/dashboard/feature-requests/${featureId}`)
           router.refresh()
         }
-      } catch (err: any) {
-        setErrorMessage(err.message || 'Failed to reject feature.')
+      } catch (err: unknown) {
+        setErrorMessage(err instanceof Error ? err.message : 'Failed to reject feature.')
       }
     })
   }

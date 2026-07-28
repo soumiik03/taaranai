@@ -11,6 +11,64 @@ const clarifyResultSchema = z.object({
   questions: z.array(z.string()),
 })
 
+export async function executeClarificationForRequest(featureRequestId: string) {
+  const featureRequest = await prisma.featureRequest.findUnique({
+    where: { id: featureRequestId },
+  })
+  if (!featureRequest) return { status: 'error' }
+
+  const existingCount = await prisma.clarificationQuestion.count({
+    where: { featureRequestId },
+  })
+
+  if (existingCount >= 4) {
+    await prisma.featureRequest.update({
+      where: { id: featureRequestId },
+      data: { status: 'READY' },
+    })
+    return { status: 'ready' }
+  }
+
+  const maxAllowed = Math.min(3, 4 - existingCount)
+
+
+    const { object: aiResult } = await generateObject({
+      model: clarificationModel,
+      schema: clarifyResultSchema,
+      prompt: buildClarifyPrompt(
+        featureRequest.title,
+        featureRequest.description,
+        maxAllowed
+      ),
+    })
+
+    const newQuestions = aiResult.questions.slice(0, maxAllowed)
+
+    if (!aiResult.needsClarification || newQuestions.length === 0) {
+      await prisma.featureRequest.update({
+        where: { id: featureRequestId },
+        data: { status: 'READY' },
+      })
+      return { status: 'ready' }
+    }
+
+    await prisma.$transaction([
+      prisma.clarificationQuestion.createMany({
+        data: newQuestions.map((q: string) => ({
+          question: q,
+          featureRequestId,
+          organizationId: featureRequest.organizationId,
+        })),
+      }),
+      prisma.featureRequest.update({
+        where: { id: featureRequestId },
+        data: { status: 'CLARIFYING' },
+      }),
+    ])
+
+    return { status: 'clarifying', questionsAsked: newQuestions.length }
+}
+
 export const clarifyFeatureRequest = inngest.createFunction(
   {
     id: 'clarify-feature-request',
@@ -18,89 +76,19 @@ export const clarifyFeatureRequest = inngest.createFunction(
   },
   async ({ event, step }) => {
     const { featureRequestId } = event.data
-
-    const featureRequest = await step.run('fetch-feature-request', async () => {
-      const fr = await prisma.featureRequest.findUnique({
-        where: { id: featureRequestId },
-      })
-      if (!fr) throw new Error('Feature request not found')
-      return fr
-    })
-
-    const existingCount = await step.run('count-existing-questions', async () => {
-      return prisma.clarificationQuestion.count({
-        where: { featureRequestId },
-      })
-    })
-
-    if (existingCount >= 4) {
-      await step.run('mark-ready', async () => {
-        await prisma.featureRequest.update({
-          where: { id: featureRequestId },
-          data: { status: 'READY' },
-        })
-      })
-
+    const res = await step.run('execute-clarification', () => executeClarificationForRequest(featureRequestId))
+    
+    if (res.status === 'ready') {
       await step.sendEvent('trigger-prd-generation', {
         name: 'prd/generate',
         data: { featureRequestId },
       })
-
-      return { status: 'ready', questionsAsked: 0 }
     }
-
-    const maxAllowed = Math.min(3, 4 - existingCount)
-
-    const aiResult = await step.run('generate-clarifying-questions', async () => {
-      const { object } = await generateObject({
-        model: clarificationModel,
-        schema: clarifyResultSchema,
-        prompt: buildClarifyPrompt(
-          featureRequest.title,
-          featureRequest.description,
-          maxAllowed
-        ),
-      })
-      return object
-    })
-
-    const newQuestions = aiResult.questions.slice(0, maxAllowed)
-
-    if (!aiResult.needsClarification || newQuestions.length === 0) {
-      await step.run('mark-ready', async () => {
-        await prisma.featureRequest.update({
-          where: { id: featureRequestId },
-          data: { status: 'READY' },
-        })
-      })
-
-      await step.sendEvent('trigger-prd-generation', {
-        name: 'prd/generate',
-        data: { featureRequestId },
-      })
-
-      return { status: 'ready', questionsAsked: 0 }
-    }
-
-    await step.run('save-questions-and-mark-clarifying', async () => {
-      await prisma.$transaction([
-        prisma.clarificationQuestion.createMany({
-          data: newQuestions.map((q: string) => ({
-            question: q,
-            featureRequestId,
-            organizationId: featureRequest.organizationId,
-          })),
-        }),
-        prisma.featureRequest.update({
-          where: { id: featureRequestId },
-          data: { status: 'CLARIFYING' },
-        }),
-      ])
-    })
-
-    return { status: 'clarifying', questionsAsked: newQuestions.length }
+    
+    return res
   }
 )
+
 
 export const recheckClarification = inngest.createFunction(
   {

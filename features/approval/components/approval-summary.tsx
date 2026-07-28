@@ -1,19 +1,15 @@
 'use client'
 
+import { ExternalLink, History } from 'lucide-react'
+
 import { useState } from 'react'
 import Link from 'next/link'
 import {
   FileText,
   Kanban,
   GitPullRequest,
-  History,
   AlertCircle,
-  ExternalLink,
-  CheckCircle2,
-  ChevronDown,
-  ChevronUp,
   Sparkles,
-  GitBranch,
   ShieldCheck,
 } from 'lucide-react'
 import { ReviewHistoryList } from '@/features/reviews/components/review-history-list'
@@ -29,10 +25,10 @@ interface ApprovalSummaryProps {
     prd: {
       id: string
       problemStatement: string
-      goals: any
-      nonGoals: any
-      userStories: any
-      acceptanceCriteria: any
+      goals: unknown
+      nonGoals: unknown
+      userStories: unknown
+      acceptanceCriteria: unknown
     } | null
     tasks: {
       id: string
@@ -51,8 +47,8 @@ interface ApprovalSummaryProps {
       headSha: string
       status: string
     } | null
-    reviewRuns: any[]
-    outstandingNonBlockingIssues: any[]
+    reviewRuns: { id: string; iteration: number; status: string; commitSha: string; createdAt: Date; issues: { id: string; severity: string; title: string; body: string; file: string; line: number | null; resolved: boolean; createdAt: Date }[] }[]
+    outstandingNonBlockingIssues: { id: string; file: string; line: number | null; title: string; body: string }[]
   }
 }
 
@@ -60,8 +56,8 @@ export function ApprovalSummary({ data }: ApprovalSummaryProps) {
   const [activeTab, setActiveTab] = useState<'all' | 'prd' | 'tasks' | 'history'>('all')
   const { featureRequest, prd, tasks, pullRequest, reviewRuns, outstandingNonBlockingIssues } = data
 
-  const goalsArray: string[] = Array.isArray(prd?.goals) ? prd.goals : []
-  const userStoriesArray: string[] = Array.isArray(prd?.userStories) ? prd.userStories : []
+  const goalsArray = Array.isArray(prd?.goals) ? prd.goals.filter((item): item is string => typeof item === 'string') : []
+  const userStoriesArray = Array.isArray(prd?.userStories) ? prd.userStories.map((item) => typeof item === 'string' ? item : JSON.stringify(item)) : []
 
   return (
     <div className="space-y-8">
@@ -114,7 +110,7 @@ export function ApprovalSummary({ data }: ApprovalSummaryProps) {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as 'all' | 'prd' | 'tasks' | 'history')}
                 className={`flex items-center gap-2 rounded-xl px-3.5 py-1.5 text-xs font-medium transition-all shrink-0 ${
                   isActive
                     ? 'bg-indigo-500 text-white shadow-md'
@@ -259,8 +255,6 @@ export function ApprovalSummary({ data }: ApprovalSummaryProps) {
           </div>
           <ReviewHistoryList
             reviewRuns={reviewRuns}
-            prNumber={pullRequest.number}
-            repoFullName={pullRequest.repoFullName}
           />
         </div>
       )}

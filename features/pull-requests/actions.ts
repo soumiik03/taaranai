@@ -2,17 +2,18 @@
 
 import { prisma } from '@/lib/db'
 import { getActiveOrganization } from '@/lib/session'
+import type { Prisma } from '@/lib/generated/prisma/client'
 
 export async function getPullRequests(statusFilter?: string) {
   const activeOrg = await getActiveOrganization()
   if (!activeOrg) return []
 
-  const whereClause: any = {
+  const whereClause: Prisma.PullRequestWhereInput = {
     organizationId: activeOrg.id,
   }
 
   if (statusFilter && statusFilter !== 'ALL') {
-    whereClause.status = statusFilter
+    whereClause.status = statusFilter as 'REVIEWING' | 'FIX_NEEDED' | 'READY_FOR_APPROVAL' | 'SHIPPED'
   }
 
   const prs = await prisma.pullRequest.findMany({

@@ -1,12 +1,11 @@
+import { GitBranch } from 'lucide-react'
 import {
   LayoutDashboard,
   Sparkles,
   HelpCircle,
   FileText,
   Kanban,
-  GitBranch,
   GitPullRequest,
-  History,
   Ship,
   CreditCard,
   Settings,

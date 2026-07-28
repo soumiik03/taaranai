@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { getApprovalDetails } from '@/features/approval/actions'
 import { ApprovalSummary } from '@/features/approval/components/approval-summary'
 import { ApprovalActions } from '@/features/approval/components/approval-actions'
-import { ArrowLeft, ShieldCheck, Sparkles } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 
 export default async function FeatureApprovalPage({
   params,

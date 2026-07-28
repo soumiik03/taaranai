@@ -44,7 +44,6 @@ export function AIReviewMarkdown({
 
   const blockingIssues = latestRun.issues.filter((i) => i.severity === 'blocking')
   const nonBlockingIssues = latestRun.issues.filter((i) => i.severity === 'non-blocking')
-  const resolvedIssues = latestRun.issues.filter((i) => i.resolved)
 
   return (
     <div className="space-y-6">

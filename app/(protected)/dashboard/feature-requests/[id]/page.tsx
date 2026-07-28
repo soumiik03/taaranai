@@ -1,5 +1,5 @@
 // app/(protected)/dashboard/feature-requests/[id]/page.tsx
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import {
   getFeatureRequest,
   getClarificationQuestions,
@@ -20,12 +20,16 @@ const statusLabels: Record<string, string> = {
 
 export default async function FeatureRequestDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ flow?: string }>
 }) {
   const { id } = await params
+  const { flow } = await searchParams
   const request = await getFeatureRequest(id)
   if (!request) notFound()
+  if (flow === 'new') redirect(`/dashboard/clarifications?id=${id}&flow=new`)
 
   const questions =
     request.status === 'CLARIFYING' ? await getClarificationQuestions(id) : []
@@ -33,7 +37,6 @@ export default async function FeatureRequestDetailPage({
   const prdId = request.prd?.id ?? null
 
   const fixNeededData = await getLatestFixNeededForFeatureRequest(id)
-
   return (
     <div className="p-8 max-w-3xl mx-auto space-y-6">
       <StatusPoller
@@ -41,6 +44,7 @@ export default async function FeatureRequestDetailPage({
         hasPendingQuestions={hasPendingQuestions}
         prdId={prdId}
       />
+
       
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border pb-6">
@@ -67,6 +71,25 @@ export default async function FeatureRequestDetailPage({
         <FixNeededBanner data={fixNeededData} />
       )}
 
+      {/* PRD Ready Banner */}
+      {prdId && (
+        <div className="flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-200 text-sm">
+          <div className="flex items-center gap-3">
+            <span className="relative flex h-2.5 w-2.5 shrink-0">
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <span>PRD Specification Ready! Product Requirement Document generated.</span>
+          </div>
+          <a
+            href={`/dashboard/prd/${prdId}`}
+            className="font-semibold text-emerald-400 hover:underline shrink-0 ml-2"
+          >
+            Open PRD Editor →
+          </a>
+        </div>
+      )}
+
+
       {/* Status Notice Banners */}
       {request.status === 'CLARIFYING' && (
         <div className="flex items-center justify-between rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-200 text-sm">
@@ -86,15 +109,7 @@ export default async function FeatureRequestDetailPage({
         </div>
       )}
 
-      {request.status === 'PENDING' && (
-        <div className="flex items-center space-x-3 rounded-xl border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
-          <span className="relative flex h-2.5 w-2.5 shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500"></span>
-          </span>
-          <span>Reviewing your request... AI is analyzing your input.</span>
-        </div>
-      )}
+
 
       <RequestForm
         mode="edit"

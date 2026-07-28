@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button'
 import { getClarificationQuestions } from '@/features/requests/actions'
 import { ClarificationChat } from '@/features/requests/components/clarification-chat'
 import { StatusPoller } from '@/features/requests/components/status-poller'
+import { ProcessingView } from '@/features/requests/components/processing-view'
+import { WorkflowStatus } from '@/features/requests/components/workflow-status'
 import { HelpCircle, Sparkles, CheckCircle2, MessageSquare, ArrowRight } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -14,9 +16,9 @@ export const dynamic = 'force-dynamic'
 export default async function ClarificationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ id?: string }>
+  searchParams: Promise<{ id?: string; flow?: string }>
 }) {
-  const { id: selectedId } = await searchParams
+  const { id: selectedId, flow } = await searchParams
   const org = await getActiveOrganization()
   if (!org) notFound()
 
@@ -48,6 +50,26 @@ export default async function ClarificationsPage({
   const hasPendingQuestions = questions.some((q) => q.status === 'PENDING')
   const activePrdId = activeRequest?.prd?.id ?? null
 
+  const showProcessingView = 
+    flow === 'new' && 
+    activeRequest && 
+    (activeRequest.status === 'PENDING' || 
+     (activeRequest.status === 'CLARIFYING' && !hasPendingQuestions) ||
+     (activeRequest.status === 'READY' && !activePrdId))
+
+  if (showProcessingView) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto mt-20">
+        <ProcessingView 
+          status={activeRequest.status}
+          hasPendingQuestions={hasPendingQuestions}
+          prdId={activePrdId}
+          autoRedirectOnReady={true}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
       {activeRequest && (
@@ -55,6 +77,9 @@ export default async function ClarificationsPage({
           status={activeRequest.status}
           hasPendingQuestions={hasPendingQuestions}
           prdId={activePrdId}
+          autoRedirectOnReady={flow === 'new'}
+          intervalMs={1000}
+          autoRedirectPath={activePrdId ? `/dashboard/prd/${activePrdId}?flow=new` : undefined}
         />
       )}
 
@@ -170,15 +195,8 @@ export default async function ClarificationsPage({
                     View Request Details →
                   </Link>
                 </div>
-
                 {activeRequest.status === 'PENDING' && (
-                  <div className="flex items-center space-x-3 rounded-lg border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
-                    <span className="relative flex h-2.5 w-2.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500"></span>
-                    </span>
-                    <span>AI is currently reviewing this request and generating questions if needed...</span>
-                  </div>
+                  <WorkflowStatus status="PENDING" hasPrd={Boolean(activePrdId)} />
                 )}
 
                 {activeRequest.status === 'CLARIFYING' && (

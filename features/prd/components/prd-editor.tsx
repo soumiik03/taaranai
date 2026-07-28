@@ -184,7 +184,7 @@ function cleanUserStoryText(role: string, story: string) {
   return `As a ${role.trim() || 'user'}, ${text}`
 }
 
-export function PrdEditor({ prd }: { prd: Prd }) {
+export function PrdEditor({ prd, flow }: { prd: Prd; flow?: string }) {
   const router = useRouter()
   const [isApproving, startApprove] = useTransition()
   const [isDeleting, startDelete] = useTransition()
@@ -285,21 +285,27 @@ export function PrdEditor({ prd }: { prd: Prd }) {
             ) : (
               <Button
                 size="sm"
-                onClick={() => startApprove(() => approvePrd(prd.id))}
+                onClick={() =>
+                  startApprove(async () => {
+                    await approvePrd(prd.id)
+                    router.push(`/dashboard/tasks/${prd.id}${flow === 'new' ? '?flow=new' : ''}`)
+                  })
+                }
                 disabled={isApproving}
                 className="gap-2"
               >
                 {isApproving ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Approving...
+                    <Loader2 className="h-4 w-4 animate-spin" /> Approving & Generating Tasks...
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 className="h-4 w-4" /> Approve PRD
+                    <CheckCircle2 className="h-4 w-4" /> Approve PRD & Generate Tasks
                   </>
                 )}
               </Button>
             )}
+
           </div>
         </div>
 

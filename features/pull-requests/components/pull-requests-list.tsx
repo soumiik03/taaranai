@@ -1,12 +1,13 @@
 'use client'
 
+import { GitBranch } from 'lucide-react'
+
 import { useState } from 'react'
+import type { LucideIcon } from 'lucide-react'
 import Link from 'next/link'
 import {
   GitPullRequest,
   Search,
-  ExternalLink,
-  GitBranch,
   ShieldCheck,
   AlertOctagon,
   Ship,
@@ -36,7 +37,7 @@ interface PullRequestsListProps {
   pullRequests: PullRequestItem[]
 }
 
-const statusBadges: Record<string, { label: string; style: string; icon: any }> = {
+const statusBadges: Record<string, { label: string; style: string; icon: LucideIcon }> = {
   REVIEWING: {
     label: 'Reviewing',
     style: 'bg-indigo-500/15 text-indigo-300 ring-indigo-500/30',

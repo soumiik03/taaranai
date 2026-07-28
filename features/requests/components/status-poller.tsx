@@ -8,6 +8,8 @@ interface StatusPollerProps {
   hasPendingQuestions: boolean
   prdId?: string | null
   intervalMs?: number
+  autoRedirectOnReady?: boolean
+  autoRedirectPath?: string
 }
 
 export function StatusPoller({
@@ -15,16 +17,21 @@ export function StatusPoller({
   hasPendingQuestions,
   prdId,
   intervalMs = 2500,
+  autoRedirectOnReady = false,
+  autoRedirectPath,
 }: StatusPollerProps) {
   const router = useRouter()
   const [, startTransition] = useTransition()
 
   useEffect(() => {
-    // If status is READY and PRD has been generated, auto-redirect immediately
-    if (status === 'READY' && prdId) {
-      window.location.href = `/dashboard/prd/${prdId}`
-      return
+    // Only auto-redirect if explicitly requested (e.g. fresh submission creation flow)
+    if (autoRedirectOnReady) {
+      if (status === 'READY' && prdId) {
+        router.replace(autoRedirectPath ?? `/dashboard/prd/${prdId}`)
+        return
+      }
     }
+
 
     // Determine whether polling is needed
     const shouldPoll =
@@ -46,7 +53,8 @@ export function StatusPoller({
     timeoutId = setTimeout(poll, intervalMs)
 
     return () => clearTimeout(timeoutId)
-  }, [status, hasPendingQuestions, prdId, intervalMs, router])
+  }, [status, hasPendingQuestions, prdId, intervalMs, autoRedirectOnReady, autoRedirectPath, router])
 
   return null
 }
+

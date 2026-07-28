@@ -1,18 +1,16 @@
 'use client'
 
+import { CheckCircle2, ExternalLink } from 'lucide-react'
+
 import {
-  CheckCircle2,
   GitPullRequest,
-  ExternalLink,
+  GitBranch,
   UserCheck,
-  Calendar,
   Sparkles,
   FileText,
   Kanban,
-  GitBranch,
   ShieldCheck,
   Ship,
-  ChevronRight,
 } from 'lucide-react'
 import type { ShippedFeatureItem } from '../actions'
 

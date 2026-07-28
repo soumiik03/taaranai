@@ -6,10 +6,13 @@ import { PrdEditor } from '@/features/prd/components/prd-editor'
 
 export default async function PrdPage({
     params,
+    searchParams,
 }: {
-    params: Promise<{ id: string }>
+    params: Promise<{ id: string }>,
+    searchParams: Promise<{ flow?: string }>
 }) {
     const { id } = await params
+    const { flow } = await searchParams
     const org = await getActiveOrganization()
     if (!org) notFound()
 
@@ -25,7 +28,7 @@ export default async function PrdPage({
 
     return (
         <div className="p-8">
-            <PrdEditor prd={prd as unknown as Parameters<typeof PrdEditor>[0]['prd']} />
+            <PrdEditor flow={flow} prd={prd as unknown as Parameters<typeof PrdEditor>[0]['prd']} />
         </div>
     )
 }

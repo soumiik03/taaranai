@@ -1,6 +1,6 @@
 // app/(protected)/dashboard/tasks/page.tsx
 import Link from 'next/link'
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { getActiveOrganization } from '@/lib/session'
 import { getAllPrdsWithTasks } from '@/features/tasks/actions'
 import { Button } from '@/components/ui/button'
@@ -21,13 +21,7 @@ export default async function TasksIndexPage() {
   if (!org) notFound()
 
   const prds = await getAllPrdsWithTasks()
-
-  // If there is exactly 1 PRD, automatically redirect to its task board
-  if (prds.length === 1) {
-    redirect(`/dashboard/tasks/${prds[0].id}`)
-  }
-
-  return (
+return (
     <div className="p-8 max-w-6xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border pb-6">
