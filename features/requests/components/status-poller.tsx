@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useTransition } from 'react'
+import { useEffect, useRef, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface StatusPollerProps {
+  requestId: string
   status: string
   hasPendingQuestions: boolean
   prdId?: string | null
@@ -12,43 +13,67 @@ interface StatusPollerProps {
   autoRedirectPath?: string
 }
 
+type RequestStatus = {
+  status: string
+  hasPendingQuestions: boolean
+  prdId: string | null
+}
+
 export function StatusPoller({
+  requestId,
   status,
   hasPendingQuestions,
   prdId,
-  intervalMs = 2000,
+  intervalMs = 1500,
   autoRedirectOnReady = false,
   autoRedirectPath,
 }: StatusPollerProps) {
   const router = useRouter()
   const [, startTransition] = useTransition()
+  const lastState = useRef<RequestStatus>({ status, hasPendingQuestions, prdId: prdId ?? null })
 
   useEffect(() => {
-    // 1. Auto-redirect to PRD editor when PRD is ready
-    if (autoRedirectOnReady && status === 'READY' && prdId) {
-      router.replace(autoRedirectPath ?? `/dashboard/prd/${prdId}`)
-      return
+    let disposed = false
+
+    async function checkStatus() {
+      try {
+        const response = await fetch('/api/feature-requests/' + requestId + '/status', {
+          cache: 'no-store',
+          headers: { Accept: 'application/json' },
+        })
+        if (!response.ok || disposed) return
+
+        const next = (await response.json()) as RequestStatus
+        const previous = lastState.current
+        const changed =
+          next.status !== previous.status ||
+          next.hasPendingQuestions !== previous.hasPendingQuestions ||
+          next.prdId !== previous.prdId
+
+        lastState.current = next
+
+        if (changed) {
+          startTransition(() => router.refresh())
+        }
+      } catch {
+        // A transient polling failure should not interrupt the workflow.
+      }
     }
 
-    // 2. Determine whether polling should be active:
-    // Poll while status is PENDING, or CLARIFYING with 0 pending questions, or READY waiting for PRD id
-    const shouldPoll =
-      status === 'PENDING' ||
-      (status === 'CLARIFYING' && !hasPendingQuestions) ||
-      (status === 'READY' && !prdId)
+    const intervalId = window.setInterval(checkStatus, intervalMs)
+    void checkStatus()
 
-    if (!shouldPoll) return
+    return () => {
+      disposed = true
+      window.clearInterval(intervalId)
+    }
+  }, [intervalMs, requestId, router])
 
-    // 3. setInterval every intervalMs (2 seconds)
-    const intervalId = setInterval(() => {
-      startTransition(() => {
-        router.refresh()
-      })
-    }, intervalMs)
-
-    return () => clearInterval(intervalId)
-  }, [status, hasPendingQuestions, prdId, intervalMs, autoRedirectOnReady, autoRedirectPath, router])
+  useEffect(() => {
+    if (autoRedirectOnReady && status === 'READY' && prdId) {
+      router.replace(autoRedirectPath ?? '/dashboard/prd/' + prdId)
+    }
+  }, [autoRedirectOnReady, autoRedirectPath, prdId, router, status])
 
   return null
 }
-

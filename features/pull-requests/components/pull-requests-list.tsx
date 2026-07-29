@@ -164,14 +164,14 @@ export function PullRequestsList({ pullRequests }: PullRequestsListProps) {
 
                     <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground font-mono">
                       <span className="font-semibold text-foreground">{pr.repoFullName}</span>
-                      <span>•</span>
+              <span>|</span>
                       <span className="flex items-center gap-1">
                         <GitBranch className="h-3.5 w-3.5" />
                         {pr.branchName}
                       </span>
                       {pr.latestIteration > 0 && (
                         <>
-                          <span>•</span>
+              <span>|</span>
                           <span>Iteration #{pr.latestIteration}</span>
                         </>
                       )}

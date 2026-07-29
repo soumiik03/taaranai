@@ -276,7 +276,7 @@ export function TaskCard({ task, onTaskUpdated }: TaskCardProps) {
             <h4 className="font-semibold text-sm leading-snug text-foreground">
               {task.title}
             </h4>
-            <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3 mt-1">
+            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap break-words mt-1">
               {task.description}
             </p>
           </div>

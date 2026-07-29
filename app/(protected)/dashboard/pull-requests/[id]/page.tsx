@@ -79,7 +79,7 @@ export default async function PullRequestDetailPage({
                 <GitBranch className="h-3.5 w-3.5 text-indigo-400" />
                 {pullRequest.branchName}
               </span>
-              <span>ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢</span>
+              <span>|</span>
               <a
                 href={pullRequest.htmlUrl}
                 target="_blank"

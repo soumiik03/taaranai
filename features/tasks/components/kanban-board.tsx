@@ -191,7 +191,7 @@ useEffect(() => {
             <Kanban className="h-8 w-8 text-primary shrink-0" />
             {prd.featureRequest?.title || 'Engineering Task Board'}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+          <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap break-words">
             {prd.featureRequest?.description || 'AI-generated task breakdown and Kanban workspace.'}
           </p>
         </div>
@@ -219,14 +219,13 @@ useEffect(() => {
                 ? `${doneCount} of ${totalCount} tasks completed (${
                     totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0
                   }%)`
-                : 'AI is analyzing PRD requirements to create structured tasks (DB → API → UI).'}
+: 'AI is preparing a focused task list.'}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
-          {totalCount === 0 && (
-            <Button
+          <Button
               variant="outline"
               size="sm"
               onClick={handleTriggerGenerate}
@@ -238,9 +237,8 @@ useEffect(() => {
               ) : (
                 <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
               )}
-              Generate Tasks
+              {totalCount > 0 ? 'Regenerate Tasks' : 'Generate Tasks'}
             </Button>
-          )}
 
           {!isPlanApproved ? (
             <Button

@@ -89,7 +89,7 @@ export function FeatureRequestList({ initialRequests }: FeatureRequestListProps)
 
               <div className="flex items-center gap-3 text-[11px] text-muted-foreground/70 mt-2 font-mono">
                 <span className="capitalize">Source: {r.sourceType.toLowerCase()}</span>
-                <span>•</span>
+              <span>|</span>
                 <span>Created {new Date(r.createdAt).toLocaleDateString()}</span>
               </div>
             </Link>

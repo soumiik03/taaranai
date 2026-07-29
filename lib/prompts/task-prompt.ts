@@ -68,13 +68,15 @@ SUCCESS METRICS:
 ${stringifySection(prd.successMetrics)}
 
 INSTRUCTIONS:
-1. Break down this feature into actionable development tasks.
-2. Provide at least 5 and MAXIMUM 10 tasks total.
-3. Order tasks sequentially from foundational infrastructure/database models to backend APIs/Server Actions, and finally frontend UI components and integration (DB → API → UI).
+1. Break down this feature into the smallest practical set of actionable implementation tasks.
+2. Provide 2 to 5 tasks total. Prefer fewer tasks when the feature is small; never create tasks just to fill a quota.
+3. Keep each task focused on one user-visible outcome or tightly related implementation change. Do not force database, API, UI, testing, or documentation layers when they are not required.
 4. Each task must have:
    - "title": Concise, action-oriented title (e.g. "Create database model for Task and PRD relations")
-   - "description": Concrete technical implementation details explaining what files or components to build/modify.
-   - "priority": One of "low", "medium", or "high" based on dependency critical path.
+   - "description": Short, clear implementation context explaining what needs to change and how it fulfills the requirement. Keep it understandable to a teammate, not a design document.
+   - "priority": One of "low", "medium", or "high" based on importance.
+
+5. Do not create separate tasks solely for tests, documentation, code review, deployment, or generic cleanup unless the PRD explicitly requires them.
 
 Generate the structured JSON response matching the required schema.`
 }

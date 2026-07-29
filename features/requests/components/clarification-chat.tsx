@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+
 
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -16,7 +16,6 @@ type Question = {
 }
 
 export function ClarificationChat({ questions }: { questions: Question[] }) {
-    const router = useRouter()
     const [answer, setAnswer] = useState('')
     const [isPending, startTransition] = useTransition()
 
@@ -27,7 +26,7 @@ export function ClarificationChat({ questions }: { questions: Question[] }) {
     function submitAnswer() {
         if (!currentQuestion || !answer.trim()) return
         startTransition(async () => {
-            const result = await answerClarificationQuestion(currentQuestion.id, answer.trim())
+            await answerClarificationQuestion(currentQuestion.id, answer.trim())
             setAnswer('')
         })
     }

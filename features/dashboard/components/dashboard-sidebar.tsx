@@ -68,7 +68,7 @@ export function DashboardSidebar({ onCloseMobile, isAiWorking }: DashboardSideba
                     <span className="truncate">{route.label}</span>
                     {(route.href === '/dashboard/feature-requests' || route.href === '/dashboard/clarifications') && isAiWorking && (
                       <span className="relative flex size-2 ml-auto shrink-0" title="AI is processing requests...">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
+                        <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
                         <span className="relative inline-flex rounded-full size-2 bg-indigo-500" />
                       </span>
                     )}

@@ -1,4 +1,4 @@
-import { CheckCircle2 } from 'lucide-react'
+
 import { ThinkingIndicator } from './thinking-indicator'
 
 type WorkflowStatusProps = {

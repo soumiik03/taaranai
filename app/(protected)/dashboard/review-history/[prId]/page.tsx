@@ -99,12 +99,12 @@ export default async function ReviewHistoryPage({
                 <GitPullRequest className="h-4 w-4 text-indigo-400" />
                 PR #{pullRequest.number}: {pullRequest.title}
               </span>
-              <span>•</span>
+              <span>|</span>
               <span className="flex items-center gap-1 font-mono">
                 <GitBranch className="h-3.5 w-3.5 text-muted-foreground" />
                 {pullRequest.branchName}
               </span>
-              <span>•</span>
+              <span>|</span>
               <a
                 href={pullRequest.htmlUrl}
                 target="_blank"

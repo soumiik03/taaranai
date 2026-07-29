@@ -50,17 +50,17 @@ export default async function ClarificationsPage({
   const hasPendingQuestions = questions.some((q) => q.status === 'PENDING')
   const activePrdId = activeRequest?.prd?.id ?? null
 
-  const showProcessingView = 
-    flow === 'new' && 
-    activeRequest && 
-    (activeRequest.status === 'PENDING' || 
+  const showProcessingView =
+    flow === 'new' &&
+    activeRequest &&
+    (activeRequest.status === 'PENDING' ||
      (activeRequest.status === 'CLARIFYING' && !hasPendingQuestions) ||
      (activeRequest.status === 'READY' && !activePrdId))
 
   if (showProcessingView) {
     return (
       <div className="p-8 max-w-7xl mx-auto mt-20">
-        <ProcessingView 
+        <ProcessingView requestId={activeRequest.id}
           status={activeRequest.status}
           hasPendingQuestions={hasPendingQuestions}
           prdId={activePrdId}
@@ -74,6 +74,7 @@ export default async function ClarificationsPage({
     <div className="p-8 max-w-7xl mx-auto space-y-8">
       {activeRequest && (
         <StatusPoller
+          requestId={activeRequest.id}
           status={activeRequest.status}
           hasPendingQuestions={hasPendingQuestions}
           prdId={activePrdId}
@@ -192,7 +193,7 @@ export default async function ClarificationsPage({
                     href={`/dashboard/feature-requests/${activeRequest.id}`}
                     className="text-xs text-muted-foreground hover:text-foreground underline"
                   >
-                    View Request Details →
+                    View Request Details
                   </Link>
                 </div>
                 {activeRequest.status === 'PENDING' && (
@@ -217,11 +218,11 @@ export default async function ClarificationsPage({
                     {activePrdId ? (
                       <Link href={`/dashboard/prd/${activePrdId}`}>
                         <button className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-6 py-2">
-                          Go to PRD Editor →
+                          Go to PRD Editor
                         </button>
                       </Link>
                     ) : (
-                      <p className="text-sm text-muted-foreground animate-pulse">Generating PRD...</p>
+                      <p className="text-sm text-muted-foreground">Generating PRD...</p>
                     )}
                   </div>
                 )}

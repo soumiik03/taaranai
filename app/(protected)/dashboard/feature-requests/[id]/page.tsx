@@ -42,12 +42,12 @@ export default async function FeatureRequestDetailPage({
   return (
     <div className="p-8 max-w-3xl mx-auto space-y-6">
       <StatusPoller
+        requestId={id}
         status={request.status}
         hasPendingQuestions={hasPendingQuestions}
         prdId={prdId}
       />
 
-      
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border pb-6">
         <div>
@@ -86,11 +86,10 @@ export default async function FeatureRequestDetailPage({
             href={`/dashboard/prd/${prdId}`}
             className="font-semibold text-emerald-400 hover:underline shrink-0 ml-2"
           >
-            Open PRD Editor →
+            Open PRD Editor -&gt;
           </a>
         </div>
       )}
-
 
       {/* Status Notice Banners */}
       {request.status === 'PENDING' && (
@@ -102,22 +101,17 @@ export default async function FeatureRequestDetailPage({
       {request.status === 'CLARIFYING' && (
         <div className="flex items-center justify-between rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-200 text-sm">
           <div className="flex items-center gap-3">
-            <span className="relative flex h-2.5 w-2.5 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-            </span>
+            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-amber-500" />
             <span>AI analyst has asked clarifying questions for this request.</span>
           </div>
           <a
             href={`/dashboard/clarifications?id=${id}`}
             className="font-semibold text-amber-400 hover:underline shrink-0 ml-2"
           >
-            Answer AI Questions →
+            Answer AI Questions -&gt;
           </a>
         </div>
       )}
-
-
 
       <RequestForm
         mode="edit"
@@ -130,4 +124,4 @@ export default async function FeatureRequestDetailPage({
       />
     </div>
   )
-}
+}

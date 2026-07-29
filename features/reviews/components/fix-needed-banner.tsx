@@ -22,7 +22,7 @@ export function FixNeededBanner({ data }: FixNeededBannerProps) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-lg font-semibold text-rose-200">Fix Needed — AI Review Blocking Issues</h3>
+              <h3 className="text-lg font-semibold text-rose-200">Fix Needed - AI Review Blocking Issues</h3>
               <span className="rounded-full bg-rose-500/20 px-2.5 py-0.5 text-xs font-medium text-rose-300 ring-1 ring-rose-500/30">
                 Iteration #{data.iteration}
               </span>
@@ -91,7 +91,7 @@ export function FixNeededBanner({ data }: FixNeededBannerProps) {
 
       {/* Bottom Hint */}
       <div className="mt-4 border-t border-rose-500/10 pt-3 text-center sm:text-left text-xs text-rose-300/60 flex items-center gap-2">
-        <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+        <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
         <span>Pushing your fixes to this PR branch will automatically trigger a fresh AI re-review pass.</span>
       </div>
     </div>

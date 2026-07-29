@@ -33,7 +33,7 @@ export default async function FeatureApprovalPage({
         </Link>
 
         <div className="flex items-center gap-2">
-          <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+          <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
           <span className="text-xs font-semibold text-emerald-400">
             {isShipped ? 'Feature Shipped' : 'Ready for Human Approval'}
           </span>

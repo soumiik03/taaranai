@@ -187,9 +187,9 @@ export function OverviewContent({ orgName, hasGithubConnection, metrics, recentA
                       </span>
                       <div className="flex items-center gap-2 text-[11px] text-[#8B8B92] mt-0.5 font-normal">
                         <span>{act.type}</span>
-                        <span>•</span>
+              <span>|</span>
                         <span>{act.author}</span>
-                        <span>•</span>
+              <span>|</span>
                         <span className="font-mono">{act.timestamp}</span>
                       </div>
                     </div>

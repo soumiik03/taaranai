@@ -127,7 +127,7 @@ export function ReviewHistoryList({
                       <GitCommit className="h-3.5 w-3.5 text-indigo-400" />
                       {run.commitSha.substring(0, 7)}
                     </span>
-                    <span>•</span>
+              <span>|</span>
                     <span>{new Date(run.createdAt).toLocaleString()}</span>
                   </div>
                 </div>
