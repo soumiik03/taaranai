@@ -15,7 +15,7 @@ export const reviewPRFunction = inngest.createFunction(
   { id: 'review-pull-request', triggers: [{ event: 'github/pr.received' }] },
   async ({ event, step }) => {
     const context = await step.run('fetch-pr-tasks-and-org', async () => {
-      const pullRequest = await prisma.pullRequest.findUniqueOrThrow({
+      let pullRequest = await prisma.pullRequest.findUniqueOrThrow({
         where: { id: event.data.pullRequestId },
         include: {
           organization: true,
@@ -37,6 +37,50 @@ export const reviewPRFunction = inngest.createFunction(
         return { limitReached: true as const }
       }
 
+      // If PR has no linked feature request, attempt fallback linking to an approved PRD with tasks in the org
+      if (!pullRequest.featureRequest) {
+        const fallbackFr = await prisma.featureRequest.findFirst({
+          where: {
+            organizationId: pullRequest.organizationId,
+            prd: {
+              status: 'APPROVED',
+              tasks: { some: {} },
+            },
+          },
+          include: {
+            prd: {
+              include: {
+                tasks: { orderBy: { order: 'asc' } },
+              },
+            },
+          },
+        })
+
+        if (fallbackFr) {
+          await prisma.pullRequest.update({
+            where: { id: pullRequest.id },
+            data: { featureRequestId: fallbackFr.id },
+          })
+          pullRequest = await prisma.pullRequest.findUniqueOrThrow({
+            where: { id: event.data.pullRequestId },
+            include: {
+              organization: true,
+              featureRequest: {
+                include: {
+                  prd: {
+                    include: {
+                      tasks: {
+                        orderBy: { order: 'asc' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          })
+        }
+      }
+
       const previousRun = await prisma.reviewRun.findFirst({
         where: { pullRequestId: pullRequest.id },
         orderBy: { iteration: 'desc' },
@@ -44,8 +88,19 @@ export const reviewPRFunction = inngest.createFunction(
       const previousVerdicts = previousRun?.taskVerdicts as { taskId: string; status: string; reasoning: string }[] | undefined
 
       const prd = pullRequest.featureRequest?.prd
-      if (!prd || prd.status !== 'APPROVED' || !prd.planApproved) {
-        return { skipped: true as const, reason: 'Cannot review pull request without an approved PRD and task plan' }
+      if (!prd || prd.status !== 'APPROVED') {
+        return { skipped: true as const, reason: 'Cannot review pull request without an approved PRD' }
+      }
+
+      if (prd.tasks.length === 0) {
+        return { skipped: true as const, reason: 'Cannot review pull request because the approved plan has no tasks' }
+      }
+
+      if (!prd.planApproved) {
+        await prisma.pRD.update({
+          where: { id: prd.id },
+          data: { planApproved: true },
+        })
       }
 
       const tasks: ReviewTask[] = prd.tasks.map((task) => ({
@@ -53,10 +108,6 @@ export const reviewPRFunction = inngest.createFunction(
         title: task.title,
         description: task.description,
       }))
-
-      if (tasks.length === 0) {
-        return { skipped: true as const, reason: 'Cannot review pull request because the approved plan has no tasks' }
-      }
 
       if (!pullRequest.organization.githubInstallationId) {
         return { skipped: true as const, reason: 'Cannot review pull request without a GitHub installation' }

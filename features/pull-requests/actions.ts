@@ -87,3 +87,23 @@ export async function getPullRequestDetail(id: string) {
 
   return pullRequest
 }
+
+export async function retriggerPullRequestReview(pullRequestId: string) {
+  const activeOrg = await getActiveOrganization()
+  if (!activeOrg) throw new Error('Not authenticated')
+
+  const pullRequest = await prisma.pullRequest.findFirst({
+    where: { id: pullRequestId, organizationId: activeOrg.id },
+  })
+
+  if (!pullRequest) throw new Error('Pull request not found')
+
+  const { triggerPrReview } = await import('@/lib/inngest/functions/trigger-review')
+  await triggerPrReview(pullRequest.id, pullRequest.featureRequestId)
+
+  const { revalidatePath } = await import('next/cache')
+  revalidatePath(`/dashboard/pull-requests/${pullRequestId}`)
+  revalidatePath('/dashboard/pull-requests')
+  return { success: true }
+}
+

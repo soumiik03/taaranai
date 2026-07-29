@@ -88,7 +88,8 @@ export async function handlePullRequestEvent(payload: PullRequestWebhookPayload)
     const featureRequestId = await findLinkedFeatureRequest(
         org.id,
         pr.head?.ref || '',
-        pr.body || ''
+        pr.body || '',
+        pr.title || ''
     )
 
     if (DEBUG_WEBHOOKS) console.info('[github webhook handler] before PullRequest upsert:', { organizationId: org.id, repoFullName: payload.repository.full_name, number: pr.number })
@@ -133,34 +134,75 @@ export async function handlePullRequestEvent(payload: PullRequestWebhookPayload)
     return { handled: true, pullRequestId: saved.id, featureRequestId: saved.featureRequestId }
 }
 
-// Matching a PR back to a feature request: first try an exact ID match
-// (the reliable path — see the note on branch naming below), then fall
-// back to a loose keyword match so this still works if nobody follows
-// the convention.
-async function findLinkedFeatureRequest(
+// Matching a PR back to a feature request: try exact CUID match first,
+// then token/keyword overlap between PR title/branch/body and FR title/description,
+// and finally fall back to the single active open feature request with an approved PRD if present.
+export async function findLinkedFeatureRequest(
     organizationId: string,
     branchName: string,
-    prBody: string | null
+    prBody: string | null,
+    prTitle: string = ''
 ): Promise<string | null> {
     const openRequests = await prisma.featureRequest.findMany({
         where: { organizationId, status: { in: ['READY', 'CLARIFYING', 'PENDING'] } },
-        select: { id: true, title: true },
+        select: {
+            id: true,
+            title: true,
+            description: true,
+            prd: {
+                select: {
+                    id: true,
+                    status: true,
+                    tasks: { select: { id: true } },
+                },
+            },
+        },
     })
 
+    if (openRequests.length === 0) return null
+
+    // 1. Exact CUID match in branch, PR title, or PR body
     for (const fr of openRequests) {
-        if (branchName.includes(fr.id) || prBody?.includes(fr.id)) {
+        if (branchName.includes(fr.id) || prBody?.includes(fr.id) || prTitle.includes(fr.id)) {
             return fr.id
         }
     }
 
-    const branchWords = branchName.toLowerCase().split(/[-_/]+/)
+    // 2. Keyword overlap matching
+    const prText = `${prTitle} ${branchName} ${prBody || ''}`.toLowerCase()
+    const stopWords = new Set(['feature', 'request', 'update', 'stuff', 'some', 'the', 'and', 'for', 'with', 'this', 'that', 'from', 'into', 'main', 'branch', 'pr'])
+    const prWords = new Set(
+        prText
+            .split(/[^a-z0-9]+/)
+            .filter((w) => w.length >= 2 && !stopWords.has(w))
+    )
+
+    let bestMatchId: string | null = null
+    let maxMatchCount = 0
+
     for (const fr of openRequests) {
-        const titleWords = fr.title
-            .toLowerCase()
-            .split(/\s+/)
-            .filter((w: string) => w.length > 3)
-        const matches = titleWords.filter((w: string) => branchWords.includes(w)).length
-        if (matches >= 2) return fr.id
+        const frText = `${fr.title} ${fr.description}`.toLowerCase()
+        const frWords = frText
+            .split(/[^a-z0-9]+/)
+            .filter((w) => w.length >= 2 && !stopWords.has(w))
+
+        const matches = frWords.filter((w) => prWords.has(w)).length
+        if (matches > maxMatchCount) {
+            maxMatchCount = matches
+            bestMatchId = fr.id
+        }
+    }
+
+    if (bestMatchId && maxMatchCount >= 1) {
+        return bestMatchId
+    }
+
+    // 3. Fallback: If there is a single feature request with an approved PRD containing tasks, link to it.
+    const validPrdRequests = openRequests.filter(
+        (fr) => fr.prd && fr.prd.status === 'APPROVED' && fr.prd.tasks.length > 0
+    )
+    if (validPrdRequests.length === 1) {
+        return validPrdRequests[0].id
     }
 
     return null

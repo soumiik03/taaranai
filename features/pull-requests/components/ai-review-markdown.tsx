@@ -1,6 +1,8 @@
 'use client'
 
-import { AlertOctagon, FileCode, CheckCircle2, AlertTriangle, ShieldCheck, GitCommit } from 'lucide-react'
+import { useState, useTransition } from 'react'
+import { AlertOctagon, FileCode, CheckCircle2, AlertTriangle, ShieldCheck, GitCommit, Sparkles, Loader2 } from 'lucide-react'
+import { retriggerPullRequestReview } from '../actions'
 
 interface Issue {
   id: string
@@ -22,6 +24,7 @@ interface ReviewRun {
 }
 
 interface AIReviewMarkdownProps {
+  pullRequestId?: string
   latestRun: ReviewRun | null
   prTitle: string
   prBody: string | null
@@ -29,15 +32,54 @@ interface AIReviewMarkdownProps {
 }
 
 export function AIReviewMarkdown({
+  pullRequestId,
   latestRun,
   prTitle,
   prBody,
   status,
 }: AIReviewMarkdownProps) {
+  const [isPending, startTransition] = useTransition()
+  const [message, setMessage] = useState<string | null>(null)
+
+  function handleTriggerReview() {
+    if (!pullRequestId) return
+    setMessage(null)
+    startTransition(async () => {
+      try {
+        await retriggerPullRequestReview(pullRequestId)
+        setMessage('AI Review triggered! Processing diff chunks...')
+      } catch (err: any) {
+        setMessage(err.message || 'Failed to trigger review.')
+      }
+    })
+  }
+
   if (!latestRun) {
     return (
-      <div className="rounded-2xl border border-border bg-card p-8 text-center text-muted-foreground text-xs">
-        No AI review run recorded yet. The review will automatically start when a PR event is received.
+      <div className="rounded-2xl border border-border bg-card p-8 text-center text-muted-foreground text-xs space-y-4">
+        <p>No AI review run recorded yet. The review will automatically start when a PR event is received.</p>
+        {pullRequestId && (
+          <div>
+            <button
+              onClick={handleTriggerReview}
+              disabled={isPending}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 font-semibold text-white transition-all shadow-md text-xs disabled:opacity-50"
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Triggering Review...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  <span>Run AI Review Now</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
+        {message && <p className="text-indigo-400 font-medium text-xs mt-2">{message}</p>}
       </div>
     )
   }

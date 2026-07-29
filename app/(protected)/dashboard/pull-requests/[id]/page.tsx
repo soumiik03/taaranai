@@ -116,6 +116,7 @@ export default async function PullRequestDetailPage({
 
       {/* AI Review Markdown Output */}
       <AIReviewMarkdown
+        pullRequestId={pullRequest.id}
         latestRun={latestRun}
         prTitle={pullRequest.title}
         prBody={pullRequest.body}
