@@ -16,7 +16,7 @@ export function StatusPoller({
   status,
   hasPendingQuestions,
   prdId,
-  intervalMs = 2500,
+  intervalMs = 2000,
   autoRedirectOnReady = false,
   autoRedirectPath,
 }: StatusPollerProps) {
@@ -24,16 +24,14 @@ export function StatusPoller({
   const [, startTransition] = useTransition()
 
   useEffect(() => {
-    // Only auto-redirect if explicitly requested (e.g. fresh submission creation flow)
-    if (autoRedirectOnReady) {
-      if (status === 'READY' && prdId) {
-        router.replace(autoRedirectPath ?? `/dashboard/prd/${prdId}`)
-        return
-      }
+    // 1. Auto-redirect to PRD editor when PRD is ready
+    if (autoRedirectOnReady && status === 'READY' && prdId) {
+      router.replace(autoRedirectPath ?? `/dashboard/prd/${prdId}`)
+      return
     }
 
-
-    // Determine whether polling is needed
+    // 2. Determine whether polling should be active:
+    // Poll while status is PENDING, or CLARIFYING with 0 pending questions, or READY waiting for PRD id
     const shouldPoll =
       status === 'PENDING' ||
       (status === 'CLARIFYING' && !hasPendingQuestions) ||
@@ -41,18 +39,14 @@ export function StatusPoller({
 
     if (!shouldPoll) return
 
-    let timeoutId: NodeJS.Timeout
-
-    const poll = () => {
+    // 3. setInterval every intervalMs (2 seconds)
+    const intervalId = setInterval(() => {
       startTransition(() => {
         router.refresh()
       })
-      timeoutId = setTimeout(poll, intervalMs)
-    }
+    }, intervalMs)
 
-    timeoutId = setTimeout(poll, intervalMs)
-
-    return () => clearTimeout(timeoutId)
+    return () => clearInterval(intervalId)
   }, [status, hasPendingQuestions, prdId, intervalMs, autoRedirectOnReady, autoRedirectPath, router])
 
   return null

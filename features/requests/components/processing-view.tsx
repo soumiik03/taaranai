@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Sparkles, Brain, CheckCircle2, FileText, ArrowRight, Loader2 } from 'lucide-react'
+import { Sparkles, Brain, CheckCircle2, FileText, ArrowRight } from 'lucide-react'
 import { StatusPoller } from './status-poller'
+import { ThinkingIndicator } from './thinking-indicator'
 
 interface ProcessingViewProps {
   status: string
@@ -19,7 +19,7 @@ export function ProcessingView({ status, hasPendingQuestions, prdId, autoRedirec
         hasPendingQuestions={hasPendingQuestions} 
         prdId={prdId} 
         autoRedirectOnReady={autoRedirectOnReady} 
-        intervalMs={1000} 
+        intervalMs={2000} 
         autoRedirectPath={prdId ? `/dashboard/prd/${prdId}?flow=new` : undefined}
       />
       
@@ -30,28 +30,34 @@ export function ProcessingView({ status, hasPendingQuestions, prdId, autoRedirec
         </div>
       </div>
 
-      <div className="space-y-2 max-w-md">
+      <div className="space-y-4 max-w-md">
         <h2 className="text-2xl font-bold tracking-tight">AI is analyzing your request</h2>
-        <p className="text-muted-foreground">
-          {status === 'PENDING' && "We're reviewing your feature request and preparing any necessary clarification questions..."}
-          {status === 'CLARIFYING' && !hasPendingQuestions && "We're processing your answers and generating the next set of questions..."}
-          {status === 'READY' && !prdId && "All questions answered! We're now generating your Product Requirements Document (PRD)..."}
-        </p>
+        
+        <ThinkingIndicator 
+          text={
+            status === 'PENDING'
+              ? "Reviewing feature request & preparing clarification questions..."
+              : status === 'CLARIFYING' && !hasPendingQuestions
+              ? "Processing your answers & generating follow-up questions..."
+              : "Generating Product Requirements Document (PRD)..."
+          }
+          className="mx-auto"
+        />
       </div>
 
       <div className="flex items-center gap-4 text-sm font-medium text-muted-foreground">
         <div className={`flex items-center gap-2 ${status !== 'PENDING' ? 'text-emerald-400' : 'text-indigo-400'}`}>
-          {status !== 'PENDING' ? <CheckCircle2 className="h-4 w-4" /> : <Loader2 className="h-4 w-4 animate-spin" />}
+          <CheckCircle2 className="h-4 w-4" />
           <span>Analysis</span>
         </div>
         <ArrowRight className="h-4 w-4 opacity-30" />
         <div className={`flex items-center gap-2 ${status === 'CLARIFYING' ? 'text-indigo-400' : (status === 'READY' ? 'text-emerald-400' : '')}`}>
-          {status === 'READY' ? <CheckCircle2 className="h-4 w-4" /> : (status === 'CLARIFYING' ? <Loader2 className="h-4 w-4 animate-spin" /> : <div className="h-4 w-4 rounded-full border-2 border-muted" />)}
+          {status === 'READY' ? <CheckCircle2 className="h-4 w-4" /> : <div className="h-4 w-4 rounded-full border-2 border-muted" />}
           <span>Clarification</span>
         </div>
         <ArrowRight className="h-4 w-4 opacity-30" />
         <div className={`flex items-center gap-2 ${prdId ? 'text-emerald-400' : (status === 'READY' && !prdId ? 'text-indigo-400' : '')}`}>
-          {prdId ? <CheckCircle2 className="h-4 w-4" /> : (status === 'READY' && !prdId ? <Loader2 className="h-4 w-4 animate-spin" /> : <div className="h-4 w-4 rounded-full border-2 border-muted" />)}
+          {prdId ? <CheckCircle2 className="h-4 w-4" /> : <div className="h-4 w-4 rounded-full border-2 border-muted" />}
           <span>PRD Generation</span>
         </div>
       </div>

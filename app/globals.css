@@ -86,3 +86,29 @@
     font-style: normal !important;
   }
 }
+
+@keyframes typing-dot {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+.animate-typing-dot-1 {
+  animation: typing-dot 1.2s infinite ease-in-out;
+  animation-delay: 0s;
+}
+
+.animate-typing-dot-2 {
+  animation: typing-dot 1.2s infinite ease-in-out;
+  animation-delay: 0.2s;
+}
+
+.animate-typing-dot-3 {
+  animation: typing-dot 1.2s infinite ease-in-out;
+  animation-delay: 0.4s;
+}

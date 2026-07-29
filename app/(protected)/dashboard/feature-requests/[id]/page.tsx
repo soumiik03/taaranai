@@ -11,6 +11,8 @@ import { RequestForm } from '@/features/requests/components/request-form'
 import { StatusPoller } from '@/features/requests/components/status-poller'
 import { Button } from '@/components/ui/button'
 
+import { ThinkingIndicator } from '@/features/requests/components/thinking-indicator'
+
 const statusLabels: Record<string, string> = {
   PENDING: 'Pending',
   CLARIFYING: 'Clarifying',
@@ -91,6 +93,12 @@ export default async function FeatureRequestDetailPage({
 
 
       {/* Status Notice Banners */}
+      {request.status === 'PENDING' && (
+        <div className="p-4 rounded-xl border border-indigo-500/30 bg-card">
+          <ThinkingIndicator text="AI analyst is reviewing your feature request and preparing questions..." />
+        </div>
+      )}
+
       {request.status === 'CLARIFYING' && (
         <div className="flex items-center justify-between rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-200 text-sm">
           <div className="flex items-center gap-3">
