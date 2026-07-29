@@ -4,17 +4,34 @@ export type ReviewTask = {
   description: string
 }
 
-export function buildReviewPrompt(tasks: ReviewTask[], diff: { filename: string; content: string }) {
+export function buildReviewPrompt(
+  tasks: ReviewTask[],
+  diff: { filename: string; content: string },
+  previousVerdicts?: { taskId: string; status: string; reasoning: string }[]
+) {
   const taskBoard = tasks.map((task) =>
     'TASK ' + task.id + '\nTitle: ' + task.title + '\nDescription: ' + task.description
   ).join('\n\n')
 
-  return [
+  const lines = [
     'You are reviewing one pull-request diff chunk against an approved Kanban task board.',
     '',
     'TASK BOARD (the only allowed scope):',
     taskBoard,
     '',
+  ]
+
+  if (previousVerdicts && previousVerdicts.length > 0) {
+    lines.push(
+      'PREVIOUS REVIEW CONTEXT:',
+      JSON.stringify(previousVerdicts, null, 2),
+      '',
+      'A previous review of this PR exists. The new review should explicitly state what is now resolved, what is still outstanding, and flag any regressions on previously-fine tasks.',
+      ''
+    )
+  }
+
+  lines.push(
     'PULL REQUEST DIFF CHUNK:',
     diff.content,
     '',
@@ -26,6 +43,8 @@ export function buildReviewPrompt(tasks: ReviewTask[], diff: { filename: string;
     '- Issues must use the supplied file and an exact changed (added) line number. If no exact changed line exists, do not return that issue.',
     '- A task is DONE only when the relevant implementation shown here is correct and complete for the task evidence available in this chunk. Use NEEDS_FIX for a concrete defect or incomplete implementation.',
     '',
-    'Return only the requested structured object.',
-  ].join('\n')
+    'Return only the requested structured object.'
+  )
+
+  return lines.join('\n')
 }

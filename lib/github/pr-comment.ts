@@ -36,6 +36,8 @@ export async function postReviewComments({
   tasks,
   taskVerdicts,
   issues,
+  isReReview,
+  isFinalReview,
 }: {
   githubApp: App
   installationId: string
@@ -45,6 +47,8 @@ export async function postReviewComments({
   tasks: ReviewTask[]
   taskVerdicts: TaskVerdict[]
   issues: ReviewIssue[]
+  isReReview?: boolean
+  isFinalReview?: boolean
 }) {
   const octokit = await githubApp.getInstallationOctokit(Number(installationId))
   const { owner, repo } = parseRepositoryName(repoFullName)
@@ -58,13 +62,18 @@ export async function postReviewComments({
     return '- ' + task.title + ' → ' + statusLabel(verdict?.status ?? 'NOT_ADDRESSED')
   })
 
-  const body = [
+  const prefix = isReReview ? 'Re-review after latest push:\n\n' : ''
+  const suffix = isFinalReview
+    ? '\n\n**Note:** The automatic review limit (5 runs) has been reached for this PR. Further pushes will not be automatically reviewed and will require manual review.'
+    : ''
+
+  const body = prefix + [
     'Reviewed against ' + tasks.length + ' tasks from the approved plan. ' +
       doneCount + ' complete, ' + needsFixCount + ' needs a fix, ' +
       notAddressedCount + ' not yet addressed.',
     '',
     ...taskLines,
-  ].join('\n')
+  ].join('\n') + suffix
 
   const comments = issues.map((issue) => ({
     path: issue.file,

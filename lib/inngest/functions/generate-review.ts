@@ -31,11 +31,12 @@ export type GeneratedChunkReview = z.infer<typeof reviewResponseSchema>
 export async function reviewDiffChunk(
   tasks: ReviewTask[],
   chunk: DiffChunk,
+  previousVerdicts?: { taskId: string; status: string; reasoning: string }[]
 ): Promise<GeneratedChunkReview> {
   const { object } = await generateObject({
     model: clarificationModel,
     schema: reviewResponseSchema,
-    prompt: buildReviewPrompt(tasks, chunk),
+    prompt: buildReviewPrompt(tasks, chunk, previousVerdicts),
   })
 
   const taskIds = new Set(tasks.map((task) => task.id))

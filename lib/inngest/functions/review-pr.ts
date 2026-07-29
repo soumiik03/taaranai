@@ -33,6 +33,16 @@ export const reviewPRFunction = inngest.createFunction(
         },
       })
 
+      if (pullRequest.reviewRunCount >= 5) {
+        return { limitReached: true as const }
+      }
+
+      const previousRun = await prisma.reviewRun.findFirst({
+        where: { pullRequestId: pullRequest.id },
+        orderBy: { iteration: 'desc' },
+      })
+      const previousVerdicts = previousRun?.taskVerdicts as { taskId: string; status: string; reasoning: string }[] | undefined
+
       const prd = pullRequest.featureRequest?.prd
       if (!prd || prd.status !== 'APPROVED' || !prd.planApproved) {
         throw new Error('Cannot review pull request without an approved PRD and task plan')
@@ -56,8 +66,13 @@ export const reviewPRFunction = inngest.createFunction(
         pullRequest,
         tasks,
         installationId: pullRequest.organization.githubInstallationId,
+        previousVerdicts,
       }
     })
+
+    if ('limitReached' in context) {
+      return { status: 'LIMIT_REACHED', reason: 'Automatic review limit exceeded.' }
+    }
 
     const files = await step.run('fetch-pr-diff', async () =>
       fetchPullRequestFiles(
@@ -85,7 +100,7 @@ export const reviewPRFunction = inngest.createFunction(
       const issuesByKey = new Map<string, GeneratedReviewIssue>()
 
       for (const chunk of chunks) {
-        const chunkReview = await reviewDiffChunk(context.tasks, chunk)
+        const chunkReview = await reviewDiffChunk(context.tasks, chunk, context.previousVerdicts)
 
         for (const verdict of chunkReview.taskVerdicts) {
           const existing = taskVerdictById.get(verdict.taskId)
@@ -131,6 +146,8 @@ export const reviewPRFunction = inngest.createFunction(
         tasks: context.tasks,
         taskVerdicts: review.taskVerdicts as TaskVerdict[],
         issues: review.issues as ReviewIssue[],
+        isReReview: context.pullRequest.reviewRunCount > 0,
+        isFinalReview: context.pullRequest.reviewRunCount === 4,
       }),
     )
 
@@ -177,6 +194,7 @@ export const reviewPRFunction = inngest.createFunction(
           iteration,
           status,
           commitSha: context.pullRequest.headSha,
+          taskVerdicts: review.taskVerdicts,
           issues: {
             create: review.issues.map((issue) => {
               const taskTitle = taskTitleById.get(issue.taskId) ?? issue.taskId
@@ -195,7 +213,10 @@ export const reviewPRFunction = inngest.createFunction(
 
       await prisma.pullRequest.update({
         where: { id: context.pullRequest.id },
-        data: { status },
+        data: { 
+          status,
+          reviewRunCount: { increment: 1 },
+        },
       })
     })
 

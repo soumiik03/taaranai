@@ -287,6 +287,8 @@ model PullRequest {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  reviewRunCount Int @default(0)
+
   reviewRuns ReviewRun[]
 
   @@unique([organizationId, repoFullName, number])
@@ -311,6 +313,8 @@ model ReviewRun {
   pullRequest   PullRequest       @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
 
   issues        ReviewIssue[]
+
+  taskVerdicts  Json?
 
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
