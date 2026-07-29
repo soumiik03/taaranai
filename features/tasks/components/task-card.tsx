@@ -32,6 +32,7 @@ import {
   CheckCircle2,
   Clock,
   Loader2,
+  Eye,
 } from 'lucide-react'
 
 export type TaskItem = {
@@ -49,9 +50,10 @@ export type TaskItem = {
 interface TaskCardProps {
   task: TaskItem
   onTaskUpdated?: () => void
+  onSelectTask?: (task: TaskItem) => void
 }
 
-export function TaskCard({ task, onTaskUpdated }: TaskCardProps) {
+export function TaskCard({ task, onTaskUpdated, onSelectTask }: TaskCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [title, setTitle] = useState(task.title)
   const [description, setDescription] = useState(task.description)
@@ -78,14 +80,16 @@ export function TaskCard({ task, onTaskUpdated }: TaskCardProps) {
 
   const PriorityIcon = priorityStyles[task.priority]?.icon || Clock
 
-  function handleStatusMove(newStatus: TaskStatus) {
+  function handleStatusMove(newStatus: TaskStatus, e?: React.MouseEvent) {
+    e?.stopPropagation()
     startTransition(async () => {
       await updateTaskStatus(task.id, newStatus)
       if (onTaskUpdated) onTaskUpdated()
     })
   }
 
-  function handleSaveEdit() {
+  function handleSaveEdit(e?: React.MouseEvent) {
+    e?.stopPropagation()
     if (!title.trim()) return
     startTransition(async () => {
       await updateTask(task.id, {
@@ -98,7 +102,8 @@ export function TaskCard({ task, onTaskUpdated }: TaskCardProps) {
     })
   }
 
-  function handleDelete() {
+  function handleDelete(e?: React.MouseEvent) {
+    e?.stopPropagation()
     if (!confirm('Are you sure you want to delete this task?')) return
     startTransition(async () => {
       await deleteTask(task.id)
@@ -107,9 +112,16 @@ export function TaskCard({ task, onTaskUpdated }: TaskCardProps) {
   }
 
   return (
-    <div className="group relative rounded-xl border border-border bg-card p-4 shadow-sm transition-all hover:border-primary/40 hover:shadow-md">
+    <div
+      onClick={() => {
+        if (!isEditing && onSelectTask) {
+          onSelectTask(task)
+        }
+      }}
+      className="group relative rounded-xl border border-border bg-card p-4 shadow-sm transition-all hover:border-primary/50 hover:shadow-md cursor-pointer"
+    >
       {isEditing ? (
-        <div className="space-y-3">
+        <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Title
@@ -209,7 +221,24 @@ export function TaskCard({ task, onTaskUpdated }: TaskCardProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setIsEditing(true)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (onSelectTask) onSelectTask(task)
+                }}
+                disabled={isPending}
+                className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                title="View Full Details"
+              >
+                <Eye className="h-3.5 w-3.5" />
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setIsEditing(true)
+                }}
                 disabled={isPending}
                 className="h-7 w-7 text-muted-foreground hover:text-foreground"
                 title="Edit Task"
@@ -223,19 +252,35 @@ export function TaskCard({ task, onTaskUpdated }: TaskCardProps) {
                     variant="ghost"
                     size="icon"
                     disabled={isPending}
+                    onClick={(e) => e.stopPropagation()}
                     className="h-7 w-7 text-muted-foreground hover:text-foreground"
                   >
                     <MoreVertical className="h-3.5 w-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-40">
-                  <DropdownMenuItem onClick={() => setIsEditing(true)} className="gap-2 text-xs">
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (onSelectTask) onSelectTask(task)
+                    }}
+                    className="gap-2 text-xs"
+                  >
+                    <Eye className="h-3.5 w-3.5 text-muted-foreground" /> View Full Context
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setIsEditing(true)
+                    }}
+                    className="gap-2 text-xs"
+                  >
                     <Edit2 className="h-3.5 w-3.5 text-muted-foreground" /> Edit Task
                   </DropdownMenuItem>
 
                   {task.status !== 'todo' && (
                     <DropdownMenuItem
-                      onClick={() => handleStatusMove('todo')}
+                      onClick={(e) => handleStatusMove('todo', e)}
                       className="gap-2 text-xs"
                     >
                       <ArrowLeft className="h-3.5 w-3.5 text-sky-400" /> Move to Todo
@@ -244,7 +289,7 @@ export function TaskCard({ task, onTaskUpdated }: TaskCardProps) {
 
                   {task.status !== 'in_progress' && (
                     <DropdownMenuItem
-                      onClick={() => handleStatusMove('in_progress')}
+                      onClick={(e) => handleStatusMove('in_progress', e)}
                       className="gap-2 text-xs"
                     >
                       <Clock className="h-3.5 w-3.5 text-amber-400" /> Move to In Progress
@@ -253,7 +298,7 @@ export function TaskCard({ task, onTaskUpdated }: TaskCardProps) {
 
                   {task.status !== 'done' && (
                     <DropdownMenuItem
-                      onClick={() => handleStatusMove('done')}
+                      onClick={(e) => handleStatusMove('done', e)}
                       className="gap-2 text-xs"
                     >
                       <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> Move to Done
@@ -261,7 +306,7 @@ export function TaskCard({ task, onTaskUpdated }: TaskCardProps) {
                   )}
 
                   <DropdownMenuItem
-                    onClick={handleDelete}
+                    onClick={(e) => handleDelete(e)}
                     className="gap-2 text-xs text-destructive focus:text-destructive"
                   >
                     <Trash2 className="h-3.5 w-3.5" /> Delete Task
@@ -273,22 +318,25 @@ export function TaskCard({ task, onTaskUpdated }: TaskCardProps) {
 
           {/* Card Body */}
           <div>
-            <h4 className="font-semibold text-sm leading-snug text-foreground">
+            <h4 className="font-semibold text-sm leading-snug text-foreground group-hover:text-primary transition-colors">
               {task.title}
             </h4>
-            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap break-words mt-1">
+            <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 mt-1">
               {task.description}
             </p>
           </div>
 
           {/* Card Footer Quick Move Action Buttons */}
           <div className="pt-2 border-t border-border/40 flex items-center justify-between">
-            <div className="flex gap-1.5 w-full justify-end">
+            <span className="text-[10px] text-muted-foreground/80 font-medium group-hover:text-primary/80 transition-colors flex items-center gap-1">
+              <Eye className="h-3 w-3" /> View Context
+            </span>
+            <div className="flex gap-1.5 justify-end">
               {task.status === 'todo' && (
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleStatusMove('in_progress')}
+                  onClick={(e) => handleStatusMove('in_progress', e)}
                   disabled={isPending}
                   className="h-7 text-[11px] px-2.5 gap-1 hover:bg-amber-500/10 hover:text-amber-400 hover:border-amber-500/30"
                 >
@@ -301,7 +349,7 @@ export function TaskCard({ task, onTaskUpdated }: TaskCardProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleStatusMove('todo')}
+                    onClick={(e) => handleStatusMove('todo', e)}
                     disabled={isPending}
                     className="h-7 text-[11px] px-2 gap-1"
                   >
@@ -310,7 +358,7 @@ export function TaskCard({ task, onTaskUpdated }: TaskCardProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleStatusMove('done')}
+                    onClick={(e) => handleStatusMove('done', e)}
                     disabled={isPending}
                     className="h-7 text-[11px] px-2.5 gap-1 hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-500/30"
                   >
@@ -323,7 +371,7 @@ export function TaskCard({ task, onTaskUpdated }: TaskCardProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleStatusMove('in_progress')}
+                  onClick={(e) => handleStatusMove('in_progress', e)}
                   disabled={isPending}
                   className="h-7 text-[11px] px-2.5 gap-1 text-muted-foreground hover:text-foreground"
                 >

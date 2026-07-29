@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { TaskCard, TaskItem } from './task-card'
+import { TaskDetailsModal } from './task-details-modal'
 import {
   getTasksByPrd,
   approvePlan,
@@ -54,13 +55,17 @@ export function KanbanBoard({ prd, initialTasks }: KanbanBoardProps) {
   const [isGenerating, startGenerateTransition] = useTransition()
   const [isFetching, setIsFetching] = useState(false)
 
+  // Selected task for full context modal
+  const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null)
+
   // Quick Add Task state per column
   const [addingColumn, setAddingColumn] = useState<TaskStatus | null>(null)
   const [newTitle, setNewTitle] = useState('')
   const [newDescription, setNewDescription] = useState('')
   const [newPriority, setNewPriority] = useState<TaskPriority>('medium')
   const [isCreating, startCreateTransition] = useTransition()
-useEffect(() => {
+
+  useEffect(() => {
     if (tasks.length > 0) return
 
     const interval = setInterval(async () => {
@@ -86,6 +91,11 @@ useEffect(() => {
     try {
       const fetchedTasks = await getTasksByPrd(prd.id)
       setTasks(fetchedTasks as TaskItem[])
+      // Update selected task reference if open
+      if (selectedTask) {
+        const updated = (fetchedTasks as TaskItem[]).find((t) => t.id === selectedTask.id)
+        setSelectedTask(updated || null)
+      }
     } finally {
       setIsFetching(false)
     }
@@ -206,7 +216,7 @@ useEffect(() => {
           <div>
             <div className="flex items-center gap-2.5">
               <h3 className="font-bold text-lg">
-                {totalCount === 0 ? 'Generating Tasks...' : `${totalCount} Engineering Tasks`}
+                {totalCount === 0 ? 'Generating Tasks...' : `${totalCount} Focused Engineering Tasks`}
               </h3>
               {isPlanApproved && (
                 <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
@@ -219,26 +229,26 @@ useEffect(() => {
                 ? `${doneCount} of ${totalCount} tasks completed (${
                     totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0
                   }%)`
-: 'AI is preparing a focused task list.'}
+                : 'AI is preparing a simple, practical task breakdown.'}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
           <Button
-              variant="outline"
-              size="sm"
-              onClick={handleTriggerGenerate}
-              disabled={isGenerating}
-              className="gap-2 text-xs"
-            >
-              {isGenerating ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
-              )}
-              {totalCount > 0 ? 'Regenerate Tasks' : 'Generate Tasks'}
-            </Button>
+            variant="outline"
+            size="sm"
+            onClick={handleTriggerGenerate}
+            disabled={isGenerating}
+            className="gap-2 text-xs"
+          >
+            {isGenerating ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+            )}
+            {totalCount > 0 ? 'Regenerate Tasks' : 'Generate Tasks'}
+          </Button>
 
           {!isPlanApproved ? (
             <Button
@@ -273,7 +283,7 @@ useEffect(() => {
           <div className="space-y-1">
             <h3 className="font-semibold text-lg">Generating Engineering Tasks...</h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Please wait while AI breaks down your PRD into sequenced database, backend, and UI implementation tasks.
+              Please wait while AI breaks down your PRD into simple, practical implementation tasks.
               This board will update automatically.
             </p>
           </div>
@@ -383,7 +393,12 @@ useEffect(() => {
                   </div>
                 ) : (
                   colTasks.map((t) => (
-                    <TaskCard key={t.id} task={t} onTaskUpdated={handleRefresh} />
+                    <TaskCard
+                      key={t.id}
+                      task={t}
+                      onTaskUpdated={handleRefresh}
+                      onSelectTask={(task) => setSelectedTask(task)}
+                    />
                   ))
                 )}
               </div>
@@ -391,6 +406,22 @@ useEffect(() => {
           )
         })}
       </div>
+
+      {/* Task Full Context & Details Modal */}
+      <TaskDetailsModal
+        task={selectedTask}
+        prdContext={
+          prd.featureRequest
+            ? {
+                title: prd.featureRequest.title,
+                description: prd.featureRequest.description,
+              }
+            : null
+        }
+        isOpen={!!selectedTask}
+        onClose={() => setSelectedTask(null)}
+        onTaskUpdated={handleRefresh}
+      />
     </div>
   )
 }

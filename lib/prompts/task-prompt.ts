@@ -68,15 +68,17 @@ SUCCESS METRICS:
 ${stringifySection(prd.successMetrics)}
 
 INSTRUCTIONS:
-1. Break down this feature into the smallest practical set of actionable implementation tasks.
-2. Provide 2 to 5 tasks total. Prefer fewer tasks when the feature is small; never create tasks just to fill a quota.
-3. Keep each task focused on one user-visible outcome or tightly related implementation change. Do not force database, API, UI, testing, or documentation layers when they are not required.
-4. Each task must have:
-   - "title": Concise, action-oriented title (e.g. "Create database model for Task and PRD relations")
-   - "description": Short, clear implementation context explaining what needs to change and how it fulfills the requirement. Keep it understandable to a teammate, not a design document.
-   - "priority": One of "low", "medium", or "high" based on importance.
-
-5. Do not create separate tasks solely for tests, documentation, code review, deployment, or generic cleanup unless the PRD explicitly requires them.
+1. Break down this feature into the smallest practical set of direct code implementation tasks.
+2. Provide 1 to 3 tasks total maximum. For simple features or small UI/CSS tweaks, output ONLY 1 focused task. Never create extra tasks to fill a quota.
+3. Focus strictly on working code implementation (e.g. core UI change, backend logic, or schema change).
+4. STRICT RULES - ABSOLUTELY FORBIDDEN TASKS:
+   - DO NOT create separate tasks for manual testing, cross-device testing, responsive testing, or QA.
+   - DO NOT create separate tasks for writing documentation, updating development logs, or writing changelogs.
+   - DO NOT create separate tasks for generic code reviews, deployment, or minor cleanup.
+5. Each task must have:
+   - "title": Concise, direct title (e.g. "Update global styles for dark background")
+   - "description": Complete, clear, self-contained implementation instructions explaining exact code changes required. NEVER end descriptions with "..." or truncate thoughts.
+   - "priority": One of "low", "medium", or "high" based on technical importance.
 
 Generate the structured JSON response matching the required schema.`
 }

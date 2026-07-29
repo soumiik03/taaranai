@@ -16,7 +16,7 @@ const tasksResponseSchema = z.object({
       })
     )
     .min(1)
-    .max(5),
+    .max(3),
 })
 
 export const generateTasks = inngest.createFunction(
@@ -53,7 +53,7 @@ export const generateTasks = inngest.createFunction(
         where: { prdId },
       })
 
-      const taskData = generated.tasks.slice(0, 5).map((t, index) => ({
+      const taskData = generated.tasks.slice(0, 3).map((t, index) => ({
         prdId,
         title: t.title,
         description: t.description,
