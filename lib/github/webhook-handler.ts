@@ -4,14 +4,22 @@ import { env } from '@/lib/env'
 import { prisma } from '@/lib/db'
 import { triggerPrReview } from '@/lib/inngest/functions/trigger-review'
 
+const DEBUG_WEBHOOKS = process.env.NODE_ENV !== 'production' || process.env.DEBUG_WEBHOOKS === 'true'
+
 export function verifyWebhookSignature(
     rawBody: string,
     signatureHeader: string | null
 ): boolean {
-    if (!signatureHeader) return false
+    const logSignatureFailure = () => {
+        console.error("GitHub webhook signature verification failed — check that GITHUB_WEBHOOK_SECRET in .env exactly matches the Webhook secret set on the GitHub App in GitHub's settings.")
+    }
 
-    const secret = env.GITHUB_WEBHOOK_SECRET || process.env.GITHUB_WEBHOOK_SECRET || ''
-    if (!secret) return false
+    if (!signatureHeader) {
+        logSignatureFailure()
+        return false
+    }
+
+    const secret = env.GITHUB_WEBHOOK_SECRET
 
     const hmac = crypto.createHmac('sha256', secret)
     const expected = 'sha256=' + hmac.update(rawBody).digest('hex')
@@ -22,8 +30,14 @@ export function verifyWebhookSignature(
     const expectedBuffer = Buffer.from(expected)
     const actualBuffer = Buffer.from(signatureHeader)
 
-    if (expectedBuffer.length !== actualBuffer.length) return false
-    return crypto.timingSafeEqual(expectedBuffer, actualBuffer)
+    if (expectedBuffer.length !== actualBuffer.length) {
+        logSignatureFailure()
+        return false
+    }
+
+    const valid = crypto.timingSafeEqual(expectedBuffer, actualBuffer)
+    if (!valid) logSignatureFailure()
+    return valid
 }
 
 const HANDLED_ACTIONS = ['opened', 'synchronize', 'reopened']
@@ -41,11 +55,13 @@ type PullRequestWebhookPayload = {
 }
 
 export async function handlePullRequestEvent(payload: PullRequestWebhookPayload) {
+    if (DEBUG_WEBHOOKS) console.info('[github webhook handler] action:', payload.action)
     if (!payload.action || !HANDLED_ACTIONS.includes(payload.action)) {
         return { handled: false, reason: 'ignored action' }
     }
 
     const installationId = String(payload.installation?.id ?? '')
+    if (DEBUG_WEBHOOKS) console.info('[github webhook handler] installation id:', installationId)
     if (!installationId) {
         return { handled: false, reason: 'no installation id on payload' }
     }
@@ -53,6 +69,7 @@ export async function handlePullRequestEvent(payload: PullRequestWebhookPayload)
     const org = await prisma.organization.findFirst({
         where: { githubInstallationId: installationId },
     })
+    if (DEBUG_WEBHOOKS) console.info('[github webhook handler] matching organization:', org ? org.id : 'not found')
     if (!org) {
         return { handled: false, reason: 'no workspace connected to this installation' }
     }
@@ -68,6 +85,7 @@ export async function handlePullRequestEvent(payload: PullRequestWebhookPayload)
         pr.body || ''
     )
 
+    if (DEBUG_WEBHOOKS) console.info('[github webhook handler] before PullRequest upsert:', { organizationId: org.id, repoFullName: payload.repository.full_name, number: pr.number })
     const saved = await prisma.pullRequest.upsert({
         where: {
             organizationId_repoFullName_number: {
@@ -100,8 +118,11 @@ export async function handlePullRequestEvent(payload: PullRequestWebhookPayload)
             status: 'REVIEWING',
         },
     })
+    if (DEBUG_WEBHOOKS) console.info('[github webhook handler] after PullRequest upsert:', saved.id)
 
+    if (DEBUG_WEBHOOKS) console.info('[github webhook handler] before triggerPrReview:', saved.id)
     await triggerPrReview(saved.id, saved.featureRequestId)
+    if (DEBUG_WEBHOOKS) console.info('[github webhook handler] after triggerPrReview:', saved.id)
 
     return { handled: true, pullRequestId: saved.id, featureRequestId: saved.featureRequestId }
 }

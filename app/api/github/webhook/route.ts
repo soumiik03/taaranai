@@ -2,12 +2,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyWebhookSignature, handlePullRequestEvent } from '@/lib/github/webhook-handler'
 
+const DEBUG_WEBHOOKS = process.env.NODE_ENV !== 'production' || process.env.DEBUG_WEBHOOKS === 'true'
+
 export async function POST(request: NextRequest) {
+    if (DEBUG_WEBHOOKS) console.info('[github webhook] request received')
     const rawBody = await request.text()
     const signature = request.headers.get('x-hub-signature-256')
     const eventType = request.headers.get('x-github-event')
+    if (DEBUG_WEBHOOKS) console.info('[github webhook] event type:', eventType)
 
-    if (!verifyWebhookSignature(rawBody, signature)) {
+    const signatureValid = verifyWebhookSignature(rawBody, signature)
+    if (DEBUG_WEBHOOKS) console.info('[github webhook] signature verification:', signatureValid ? 'pass' : 'fail')
+    if (!signatureValid) {
         return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }
 
@@ -16,6 +22,10 @@ export async function POST(request: NextRequest) {
     }
 
     const payload = JSON.parse(rawBody)
+    if (DEBUG_WEBHOOKS) {
+        console.info('[github webhook] parsed action:', payload.action)
+        console.info('[github webhook] payload installation id:', payload.installation?.id)
+    }
     const result = await handlePullRequestEvent(payload)
 
     return NextResponse.json(result)
