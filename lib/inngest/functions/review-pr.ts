@@ -45,7 +45,7 @@ export const reviewPRFunction = inngest.createFunction(
 
       const prd = pullRequest.featureRequest?.prd
       if (!prd || prd.status !== 'APPROVED' || !prd.planApproved) {
-        throw new Error('Cannot review pull request without an approved PRD and task plan')
+        return { skipped: true as const, reason: 'Cannot review pull request without an approved PRD and task plan' }
       }
 
       const tasks: ReviewTask[] = prd.tasks.map((task) => ({
@@ -55,11 +55,11 @@ export const reviewPRFunction = inngest.createFunction(
       }))
 
       if (tasks.length === 0) {
-        throw new Error('Cannot review pull request because the approved plan has no tasks')
+        return { skipped: true as const, reason: 'Cannot review pull request because the approved plan has no tasks' }
       }
 
       if (!pullRequest.organization.githubInstallationId) {
-        throw new Error('Cannot review pull request without a GitHub installation')
+        return { skipped: true as const, reason: 'Cannot review pull request without a GitHub installation' }
       }
 
       return {
@@ -72,6 +72,9 @@ export const reviewPRFunction = inngest.createFunction(
 
     if ('limitReached' in context) {
       return { status: 'LIMIT_REACHED', reason: 'Automatic review limit exceeded.' }
+    }
+    if ('skipped' in context) {
+      return { status: 'SKIPPED', reason: context.reason }
     }
 
     const files = await step.run('fetch-pr-diff', async () =>
