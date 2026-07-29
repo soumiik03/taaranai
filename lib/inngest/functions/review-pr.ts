@@ -72,6 +72,7 @@ export const reviewPRFunction = inngest.createFunction(
                     include: {
                       tasks: {
                         orderBy: { order: 'asc' },
+                        take: 4,
                       },
                     },
                   },
@@ -165,7 +166,7 @@ export const reviewPRFunction = inngest.createFunction(
       const issuesByKey = new Map<string, GeneratedReviewIssue>()
 
       for (const chunk of chunks) {
-        const chunkReview = await reviewDiffChunk(context.tasks, chunk, context.previousVerdicts, context.previousIssues)
+        const chunkReview = await reviewDiffChunk(context.tasks, chunk, context.pullRequest.reviewRunCount > 0, context.previousVerdicts, context.previousIssues)
 
         for (const verdict of chunkReview.taskVerdicts) {
           const existing = taskVerdictById.get(verdict.taskId)

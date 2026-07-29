@@ -69,7 +69,7 @@ ${stringifySection(prd.successMetrics)}
 
 INSTRUCTIONS:
 1. Break down this feature into the smallest practical set of direct code implementation tasks.
-2. Provide 1 to 3 tasks total maximum. For simple features or small UI/CSS tweaks, output ONLY 1 focused task. Never create extra tasks to fill a quota.
+2. Provide 1 to 4 tasks total maximum. For simple features or small UI/CSS tweaks, output ONLY 1 focused task. Never create extra tasks to fill a quota.
 3. Focus strictly on working code implementation (e.g. core UI change, backend logic, or schema change).
 4. STRICT RULES - ABSOLUTELY FORBIDDEN TASKS:
    - DO NOT create separate tasks for manual testing, cross-device testing, responsive testing, or QA.

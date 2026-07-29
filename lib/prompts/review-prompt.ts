@@ -7,6 +7,7 @@ export type ReviewTask = {
 export function buildReviewPrompt(
   tasks: ReviewTask[],
   diff: { filename: string; content: string },
+  isReReview: boolean,
   previousVerdicts?: { taskId: string; status: string; reasoning: string }[],
   previousIssues?: { file: string; line: number; message: string; resolved: boolean }[]
 ) {
@@ -15,51 +16,75 @@ export function buildReviewPrompt(
   ).join('\n\n')
 
   const lines = [
-    'You are reviewing one pull-request diff chunk against an approved Kanban task board.',
+    'You are a strict code reviewer. You are reviewing ONE diff chunk from a pull request.',
+    'Your job is to check whether the code VISIBLE in this diff chunk correctly implements the tasks from the Kanban board.',
     '',
     'TASK BOARD (the only allowed scope):',
     taskBoard,
     '',
   ]
 
-  if (previousVerdicts && previousVerdicts.length > 0) {
+  if (isReReview && previousIssues && previousIssues.length > 0) {
     lines.push(
-      'PREVIOUS REVIEW CONTEXT (VERDICTS):',
-      JSON.stringify(previousVerdicts, null, 2),
+      '=== RE-REVIEW MODE ===',
+      'This is a re-review. A previous review flagged the issues listed below.',
+      'Your ONLY job is to check whether these specific previously-flagged issues are now fixed.',
       '',
-      'A previous review of this PR exists. The new review should explicitly state what is now resolved, what is still outstanding, and flag any regressions on previously-fine tasks.',
-      ''
-    )
-  }
-
-  if (previousIssues && previousIssues.length > 0) {
-    lines.push(
-      'PREVIOUS ISSUES (STILL UNRESOLVED):',
+      'PREVIOUSLY FLAGGED ISSUES:',
       JSON.stringify(previousIssues, null, 2),
       '',
-      'These issues were flagged in the last review and are not yet resolved.',
-      'Check specifically whether each of these issues is now fixed in the provided diff.',
-      'If an issue is NOW FIXED, you MUST acknowledge it as resolved and DO NOT output it again in the issues list.',
-      'If an issue is STILL PRESENT and not fixed, you MUST output it again.',
+      'CRITICAL RE-REVIEW RULES:',
+      '- If a previously flagged issue is NOW FIXED in this diff, mark the corresponding task as DONE. Do NOT re-output the issue.',
+      '- If a previously flagged issue is STILL BROKEN in this diff, mark the task as NEEDS_FIX and re-output the issue.',
+      '- DO NOT look for new issues. DO NOT flag anything that was not flagged in the previous review.',
+      '- The ONLY exception: if the developer\'s fix introduced a direct regression or new bug ON THE SAME LINE they changed to fix the previous issue, you may flag that. But do NOT go hunting for unrelated new problems.',
+      '- If none of the previously flagged issues relate to this diff chunk, return empty issues and mark all tasks NOT_ADDRESSED.',
       ''
     )
+
+    if (previousVerdicts && previousVerdicts.length > 0) {
+      lines.push(
+        'PREVIOUS VERDICTS (for context only):',
+        JSON.stringify(previousVerdicts, null, 2),
+        ''
+      )
+    }
   }
 
   lines.push(
-    'PULL REQUEST DIFF CHUNK:',
+    'DIFF CHUNK TO REVIEW:',
+    '```',
     diff.content,
+    '```',
     '',
-    'Strict review rules:',
-    '- DO NOT invent, assume, or speculate about code you cannot see in this exact diff chunk.',
-    '- Your review MUST be grounded STRICTLY in two things and nothing else: (a) the actual diff content provided, and (b) the specific tasks on the board.',
-    '- Evaluate only whether the implementation in this diff chunk fulfills the supplied tasks.',
-    '- Every issue must cite exactly one task id from the task board. If an issue cannot be tied to a real line in the diff AND a real task, it MUST NOT appear in the output.',
-    '- Do not report style preferences, generic best practices, unrelated refactors, or concerns that cannot be traced to a supplied task.',
-    '- Return task verdicts only for tasks that this chunk provides evidence about. Use NOT_ADDRESSED only when this chunk clearly shows that a task is missing or contradicted; do not mark a task NOT_ADDRESSED merely because it belongs to another diff chunk.',
-    '- Issues must use the supplied file and an exact changed (added) line number. If no exact changed line exists, do not return that issue. Every issue must describe a concrete task-completion defect; non-blocking suggestions are allowed only when they directly affect a supplied task.',
-    '- A task is DONE only when the relevant implementation shown here is correct and complete for the task evidence available in this chunk. Do not infer or mention generic style, security, maintainability, or best-practice concerns outside the supplied task. Use NEEDS_FIX for a concrete defect or incomplete implementation.',
+    'STRICT RULES (you MUST follow ALL of these):',
     '',
-    'Return only the requested structured object.'
+    '1. ONLY flag issues with code that IS PRESENT and VISIBLE in the diff above.',
+    '   DO NOT flag the absence of code. If a task\'s code is not in this chunk, that is fine — it may be in another chunk. Mark that task NOT_ADDRESSED and move on.',
+    '',
+    '2. DO NOT invent, assume, imagine, or speculate about code you cannot see.',
+    '   If you cannot point to a specific added line (a line starting with "+") that contains the defect, you have no issue to report.',
+    '',
+    '3. Every issue MUST have:',
+    '   - A taskId from the task board above',
+    '   - The exact filename of THIS chunk',
+    '   - An exact line number of a CHANGED (added/"+") line in the diff',
+    '   - A message that describes the SPECIFIC defect in the code on that line (NOT just the task title)',
+    '',
+    '4. The "message" field must describe what is WRONG with the actual code on that line.',
+    '   BAD message: "Update global styles for dark background" (this is just the task title)',
+    '   GOOD message: "background-color is set to #333 but the task requires pure black (#000000)"',
+    '',
+    '5. If this diff chunk contains no defects, return an EMPTY issues array [].',
+    '   Returning zero issues is a perfectly valid outcome. Do NOT manufacture issues to fill the array.',
+    '',
+    '6. Do not report style preferences, best practices, or suggestions unrelated to the task board.',
+    '',
+    '7. A task is DONE if the code in this chunk correctly implements it.',
+    '   A task is NEEDS_FIX ONLY if you see actual wrong code for that task in this chunk.',
+    '   A task is NOT_ADDRESSED if this chunk has no code related to that task — this is NOT a problem.',
+    '',
+    'Return only the requested structured JSON object.'
   )
 
   return lines.join('\n')
