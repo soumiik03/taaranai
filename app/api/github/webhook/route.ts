@@ -1,6 +1,7 @@
 // app/api/github/webhook/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyWebhookSignature, handlePullRequestEvent } from '@/lib/github/webhook-handler'
+import crypto from 'crypto'
 
 export const runtime = 'nodejs'
 
@@ -11,6 +12,7 @@ export async function POST(request: NextRequest) {
     const rawBody = await request.text()
     const signature = request.headers.get('x-hub-signature-256')
     const eventType = request.headers.get('x-github-event')
+    const deliveryId = request.headers.get('x-github-delivery') || crypto.createHash('sha256').update(rawBody).digest('hex')
     if (DEBUG_WEBHOOKS) console.info('[github webhook] event type:', eventType)
 
     const signatureValid = verifyWebhookSignature(rawBody, signature)
@@ -34,7 +36,7 @@ export async function POST(request: NextRequest) {
         console.info('[github webhook] payload installation id:', payload.installation?.id)
     }
     try {
-        const result = await handlePullRequestEvent(payload)
+        const result = await handlePullRequestEvent(payload, deliveryId)
         return NextResponse.json(result)
     } catch (error) {
         console.error('[github webhook] processing failed:', error)

@@ -40,8 +40,8 @@ export function buildReviewPrompt(
     '- Every issue must cite exactly one task id from the task board.',
     '- Do not report style preferences, generic best practices, unrelated refactors, or concerns that cannot be traced to a supplied task.',
     '- Return task verdicts only for tasks that this chunk provides evidence about. Use NOT_ADDRESSED only when this chunk clearly shows that a task is missing or contradicted; do not mark a task NOT_ADDRESSED merely because it belongs to another diff chunk.',
-    '- Issues must use the supplied file and an exact changed (added) line number. If no exact changed line exists, do not return that issue.',
-    '- A task is DONE only when the relevant implementation shown here is correct and complete for the task evidence available in this chunk. Use NEEDS_FIX for a concrete defect or incomplete implementation.',
+    '- Issues must use the supplied file and an exact changed (added) line number. If no exact changed line exists, do not return that issue. Every issue must describe a concrete task-completion defect; non-blocking suggestions are allowed only when they directly affect a supplied task.',
+    '- A task is DONE only when the relevant implementation shown here is correct and complete for the task evidence available in this chunk. Do not infer or mention generic style, security, maintainability, or best-practice concerns outside the supplied task. Use NEEDS_FIX for a concrete defect or incomplete implementation.',
     '',
     'Return only the requested structured object.'
   )

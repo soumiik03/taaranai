@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { AlertOctagon, FileCode, CheckCircle2, AlertTriangle, ShieldCheck, GitCommit, Sparkles, Loader2 } from 'lucide-react'
 import { retriggerPullRequestReview } from '../actions'
 
@@ -14,6 +15,18 @@ interface Issue {
   resolved: boolean
 }
 
+interface ReviewTask {
+  id: string
+  title: string
+  description: string
+}
+
+interface TaskVerdict {
+  taskId: string
+  status: 'DONE' | 'NEEDS_FIX' | 'NOT_ADDRESSED'
+  reasoning: string
+}
+
 interface ReviewRun {
   id: string
   iteration: number
@@ -21,6 +34,7 @@ interface ReviewRun {
   commitSha: string
   createdAt: Date
   issues: Issue[]
+  taskVerdicts?: unknown
 }
 
 interface AIReviewMarkdownProps {
@@ -29,6 +43,7 @@ interface AIReviewMarkdownProps {
   prTitle: string
   prBody: string | null
   status: string
+  tasks?: ReviewTask[]
 }
 
 export function AIReviewMarkdown({
@@ -37,9 +52,27 @@ export function AIReviewMarkdown({
   prTitle,
   prBody,
   status,
+  tasks = [],
 }: AIReviewMarkdownProps) {
   const [isPending, startTransition] = useTransition()
   const [message, setMessage] = useState<string | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    if (status !== 'REVIEWING') return
+    const interval = window.setInterval(() => router.refresh(), 3000)
+    return () => window.clearInterval(interval)
+  }, [router, status])
+
+  if (status === 'REVIEWING') {
+    return (
+      <div className='rounded-2xl border border-indigo-500/30 bg-card p-8 text-center text-muted-foreground text-xs'>
+        <Loader2 className='mx-auto mb-3 h-6 w-6 animate-spin text-indigo-400' />
+        <p className='font-medium text-foreground'>AI review in progress</p>
+        <p className='mt-1'>The dashboard will update automatically when GitHub review is complete.</p>
+      </div>
+    )
+  }
 
   function handleTriggerReview() {
     if (!pullRequestId) return
@@ -48,8 +81,8 @@ export function AIReviewMarkdown({
       try {
         await retriggerPullRequestReview(pullRequestId)
         setMessage('AI Review triggered! Processing diff chunks...')
-      } catch (err: any) {
-        setMessage(err.message || 'Failed to trigger review.')
+      } catch (err: unknown) {
+        setMessage(err instanceof Error ? err.message : 'Failed to trigger review.')
       }
     })
   }
@@ -86,6 +119,8 @@ export function AIReviewMarkdown({
 
   const blockingIssues = latestRun.issues.filter((i) => i.severity === 'blocking')
   const nonBlockingIssues = latestRun.issues.filter((i) => i.severity === 'non-blocking')
+  const taskVerdicts = (Array.isArray(latestRun.taskVerdicts) ? latestRun.taskVerdicts : []) as TaskVerdict[]
+  const verdictByTaskId = new Map(taskVerdicts.map((verdict) => [verdict.taskId, verdict]))
 
   return (
     <div className="space-y-6">
@@ -109,7 +144,7 @@ export function AIReviewMarkdown({
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-base font-bold text-foreground">
-                AI Review Pass — Iteration #{latestRun.iteration}
+                AI Review Pass - Iteration #{latestRun.iteration}
               </h3>
               <span
                 className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${
@@ -124,7 +159,7 @@ export function AIReviewMarkdown({
             <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2 font-mono">
               <GitCommit className="h-3.5 w-3.5 text-indigo-400" />
               <span>Commit: {latestRun.commitSha}</span>
-              <span>•</span>
+              <span>|</span>
               <span>Ran on {new Date(latestRun.createdAt).toLocaleString()}</span>
             </p>
           </div>
@@ -139,6 +174,26 @@ export function AIReviewMarkdown({
           </span>
         </div>
       </div>
+
+      {tasks.length > 0 && taskVerdicts.length > 0 && (
+        <div className='rounded-2xl border border-border bg-card p-6 space-y-3'>
+          <h3 className='text-sm font-bold uppercase tracking-wider text-muted-foreground border-b border-border pb-3'>Task verdicts</h3>
+          {tasks.map((task) => {
+            const verdict = verdictByTaskId.get(task.id)
+            const taskIssues = latestRun.issues.filter((issue) => issue.title.startsWith(task.title + ':'))
+            return <div key={task.id} className='rounded-xl border border-border/70 p-4'>
+              <div className='flex items-center justify-between gap-3'>
+                <span className='font-semibold text-foreground'>{task.title}</span>
+                <span className='text-xs font-semibold text-muted-foreground'>{verdict?.status?.replace(/_/g, ' ') || 'NOT ADDRESSED'}</span>
+              </div>
+              <p className='mt-1 text-xs text-muted-foreground'>{verdict?.reasoning || 'No implementation evidence was found in the reviewed diff.'}</p>
+              {taskIssues.length > 0 && <div className='mt-3 space-y-2'>
+                {taskIssues.map((issue) => <p key={issue.id} className="text-xs text-rose-300">{issue.file} - {issue.body}</p>)}
+              </div>}
+            </div>
+          })}
+        </div>
+      )}
 
       {/* SEPARATE HIGHLIGHTED BLOCKING ISSUES SECTION */}
       {blockingIssues.length > 0 && (
@@ -238,15 +293,15 @@ export function AIReviewMarkdown({
               </li>
               <li className="flex items-center gap-2 text-foreground">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                <span>Edge Cases & Technical Contract Validation</span>
+                <span>Task completion and acceptance criteria</span>
               </li>
               <li className="flex items-center gap-2 text-foreground">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                <span>Security Vulnerability & Timing Attack Inspection</span>
+                <span>Changed-line evidence for incomplete tasks</span>
               </li>
               <li className="flex items-center gap-2 text-foreground">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                <span>Breaking Schema & Type System Consistency</span>
+                <span>Scope limited to approved Kanban tasks</span>
               </li>
             </ul>
           </div>

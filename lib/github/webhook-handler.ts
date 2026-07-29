@@ -31,7 +31,7 @@ export function verifyWebhookSignature(
     const expected = 'sha256=' + hmac.update(rawBody).digest('hex')
 
     // timingSafeEqual prevents a timing attack from leaking the secret
-    // byte-by-byte — a plain === comparison returns faster the moment it
+    // byte-by-byte - a plain === comparison returns faster the moment it
     // hits the first mismatched character, which is a measurable signal.
     const expectedBuffer = Buffer.from(expected)
     const actualBuffer = Buffer.from(normalizedSignature)
@@ -60,7 +60,7 @@ type PullRequestWebhookPayload = {
     }
 }
 
-export async function handlePullRequestEvent(payload: PullRequestWebhookPayload) {
+export async function handlePullRequestEvent(payload: PullRequestWebhookPayload, deliveryId = crypto.createHash('sha256').update(JSON.stringify(payload)).digest('hex')) {
     if (DEBUG_WEBHOOKS) console.info('[github webhook handler] action:', payload.action)
     if (!payload.action || !HANDLED_ACTIONS.includes(payload.action)) {
         return { handled: false, reason: 'ignored action' }
@@ -121,14 +121,14 @@ export async function handlePullRequestEvent(payload: PullRequestWebhookPayload)
             htmlUrl: pr.html_url || '',
             featureRequestId: featureRequestId ?? undefined,
             // A new push (synchronize) means whatever the last review said is
-            // stale — reset to REVIEWING so Chapter 13's pipeline runs fresh.
+            // stale - reset to REVIEWING so Chapter 13's pipeline runs fresh.
             status: 'REVIEWING',
         },
     })
     if (DEBUG_WEBHOOKS) console.info('[github webhook handler] after PullRequest upsert:', saved.id)
 
     if (DEBUG_WEBHOOKS) console.info('[github webhook handler] before triggerPrReview:', saved.id)
-    await triggerPrReview(saved.id, saved.featureRequestId)
+    await triggerPrReview(saved.id, saved.featureRequestId, deliveryId)
     if (DEBUG_WEBHOOKS) console.info('[github webhook handler] after triggerPrReview:', saved.id)
 
     return { handled: true, pullRequestId: saved.id, featureRequestId: saved.featureRequestId }

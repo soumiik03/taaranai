@@ -74,12 +74,12 @@ export default async function PullRequestDetailPage({
 
             <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground pt-1">
               <span className="font-semibold text-foreground">{pullRequest.repoFullName}</span>
-              <span>•</span>
+              <span>|</span>
               <span className="flex items-center gap-1 font-mono">
                 <GitBranch className="h-3.5 w-3.5 text-indigo-400" />
                 {pullRequest.branchName}
               </span>
-              <span>•</span>
+              <span>ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢</span>
               <a
                 href={pullRequest.htmlUrl}
                 target="_blank"
@@ -121,6 +121,7 @@ export default async function PullRequestDetailPage({
         prTitle={pullRequest.title}
         prBody={pullRequest.body}
         status={pullRequest.status}
+        tasks={pullRequest.featureRequest?.prd?.tasks || []}
       />
     </div>
   )

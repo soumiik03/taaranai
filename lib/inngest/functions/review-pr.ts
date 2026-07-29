@@ -12,7 +12,7 @@ import {
 } from './generate-review'
 
 export const reviewPRFunction = inngest.createFunction(
-  { id: 'review-pull-request', triggers: [{ event: 'github/pr.received' }] },
+  { id: 'review-pull-request', triggers: [{ event: 'github/pr.received' }], singleton: { key: 'event.data.pullRequestId', mode: 'cancel' } },
   async ({ event, step }) => {
     const context = await step.run('fetch-pr-tasks-and-org', async () => {
       let pullRequest = await prisma.pullRequest.findUniqueOrThrow({
