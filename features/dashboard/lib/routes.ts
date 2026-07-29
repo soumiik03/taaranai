@@ -7,8 +7,6 @@ import {
   Kanban,
   GitPullRequest,
   Ship,
-  CreditCard,
-  Settings,
   LucideIcon,
 } from 'lucide-react'
 
@@ -40,13 +38,6 @@ export const navSections: NavSection[] = [
       { label: 'GitHub', href: '/dashboard/github', icon: GitBranch },
       { label: 'Pull Requests', href: '/dashboard/pull-requests', icon: GitPullRequest },
       { label: 'Shipped Features', href: '/dashboard/shipped', icon: Ship },
-    ],
-  },
-  {
-    title: 'WORKSPACE',
-    routes: [
-      { label: 'Billing', href: '/dashboard/billing', icon: CreditCard },
-      { label: 'Settings', href: '/dashboard/settings', icon: Settings },
     ],
   },
 ]

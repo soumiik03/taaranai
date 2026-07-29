@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { AlertOctagon, FileCode, CheckCircle2, AlertTriangle, ShieldCheck, GitCommit, Sparkles, Loader2 } from 'lucide-react'
 import { retriggerPullRequestReview } from '../actions'
+import { AIThinkingIndicator } from '@/components/ui/ai-thinking-indicator'
 
 interface Issue {
   id: string
@@ -66,10 +67,9 @@ export function AIReviewMarkdown({
 
   if (status === 'REVIEWING') {
     return (
-      <div className='rounded-2xl border border-indigo-500/30 bg-card p-8 text-center text-muted-foreground text-xs'>
-        <Loader2 className='mx-auto mb-3 h-6 w-6 animate-spin text-indigo-400' />
-        <p className='font-medium text-foreground'>AI review in progress</p>
-        <p className='mt-1'>The dashboard will update automatically when GitHub review is complete.</p>
+      <div className="rounded-2xl border border-border bg-card p-8 text-center text-muted-foreground text-xs space-y-3">
+        <AIThinkingIndicator label="AI review in progress..." className="justify-center" />
+        <p className="text-muted-foreground text-[11px]">The dashboard will update automatically when GitHub review is complete.</p>
       </div>
     )
   }

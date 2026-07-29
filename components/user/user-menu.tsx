@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { signOutUser } from '@/features/auth/actions'
-import { Settings, LogOut } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 
 interface UserMenuProps {
   user?: {
@@ -58,27 +58,17 @@ export function UserMenu({ user }: UserMenuProps) {
         </div>
 
         <DropdownMenuItem
-          onClick={() => (window.location.href = '/dashboard/settings')}
-          className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#8B8B92] hover:text-[#FAFAFA] hover:bg-[#1F1F23] rounded-md cursor-pointer font-medium"
+          disabled={isPending}
+          onClick={() => {
+            startTransition(() => {
+              signOutUser()
+            })
+          }}
+          className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#EF4444] hover:bg-[#EF4444]/10 rounded-md cursor-pointer font-medium"
         >
-          <Settings className="size-3.5 text-[#8B8B92]" />
-          <span>Account Settings</span>
+          <LogOut className="size-3.5 text-[#EF4444]" />
+          <span>{isPending ? 'Signing out...' : 'Sign out'}</span>
         </DropdownMenuItem>
-
-        <div className="border-t border-[#262626] my-1 pt-1">
-          <DropdownMenuItem
-            disabled={isPending}
-            onClick={() => {
-              startTransition(() => {
-                signOutUser()
-              })
-            }}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#EF4444] hover:bg-[#EF4444]/10 rounded-md cursor-pointer font-medium"
-          >
-            <LogOut className="size-3.5 text-[#EF4444]" />
-            <span>{isPending ? 'Signing out...' : 'Sign out'}</span>
-          </DropdownMenuItem>
-        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   )
