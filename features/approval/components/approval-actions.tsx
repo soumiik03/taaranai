@@ -77,7 +77,7 @@ export function ApprovalActions({
   }
 
   return (
-    <div className="sticky bottom-6 z-30 rounded-2xl border border-border/80 bg-card/95 p-6 shadow-2xl backdrop-blur-xl space-y-4">
+    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h3 className="text-base font-bold text-foreground flex items-center gap-2">
