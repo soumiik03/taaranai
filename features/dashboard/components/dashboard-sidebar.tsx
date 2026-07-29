@@ -79,17 +79,6 @@ export function DashboardSidebar({ onCloseMobile, isAiWorking }: DashboardSideba
           </div>
         ))}
       </div>
-
-      {/* Footer System Status Banner */}
-      <div className="p-3 border-t border-[#262626]">
-        <div className="flex items-center justify-between px-3 py-2 rounded-none hover:bg-[#0D0D0F] transition-colors cursor-pointer text-xs text-[#8B8B92]">
-          <div className="flex items-center gap-2">
-            <span className="size-2 rounded-full bg-[#22C55E] inline-block" />
-            <span className="text-xs font-medium text-[#FAFAFA]">Render Status</span>
-          </div>
-          <ChevronUp className="size-3.5 text-[#8B8B92]" />
-        </div>
-      </div>
     </aside>
   )
 }

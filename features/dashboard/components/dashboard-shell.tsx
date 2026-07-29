@@ -1,10 +1,11 @@
 'use client'
 
 import React, { useState } from 'react'
+import Link from 'next/link'
 import { DashboardSidebar } from './dashboard-sidebar'
 import { WorkspaceSwitcher } from '@/features/workspace/components/workspace-switcher'
 import { UserMenu } from '@/components/user/user-menu'
-import { Menu, X, Search, Plus, HelpCircle } from 'lucide-react'
+import { Menu, X, Plus, HelpCircle } from 'lucide-react'
 
 interface DashboardShellProps {
   children: React.ReactNode
@@ -72,31 +73,14 @@ export function DashboardShell({
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Search Input Box */}
-            <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-none border border-[#262626] bg-[#0D0D0F] text-xs text-[#8B8B92] w-48 lg:w-56 cursor-pointer hover:border-[#404040] transition-colors">
-              <Search className="size-3.5 text-[#8B8B92]" />
-              <span className="flex-1 text-[#8B8B92]">Search...</span>
-              <kbd className="font-mono text-[10px] bg-[#1F1F23] px-1.5 py-0.2 rounded-none text-[#8B8B92]">
-                ⌘K
-              </kbd>
-            </div>
-
-            {/* Outlined Action Button (+ New) */}
-            <button
-              type="button"
+            {/* Outlined Action Link (+ New Feature) */}
+            <Link
+              href="/dashboard/feature-requests/new"
               className="px-2.5 py-1 rounded-none border border-[#262626] bg-[#0D0D0F] text-xs font-medium text-[#FAFAFA] hover:bg-[#1F1F23] transition-colors flex items-center gap-1"
             >
               <Plus className="size-3.5 text-[#FAFAFA]" />
               <span>New</span>
-            </button>
-
-            {/* Outlined Upgrade Button */}
-            <button
-              type="button"
-              className="hidden md:flex px-2.5 py-1 rounded-none border border-[#262626] bg-[#0D0D0F] text-xs font-medium text-[#FAFAFA] hover:bg-[#1F1F23] transition-colors"
-            >
-              Upgrade
-            </button>
+            </Link>
 
             {/* Help / Docs */}
             <button

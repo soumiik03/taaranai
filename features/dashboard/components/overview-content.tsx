@@ -1,8 +1,8 @@
 'use client'
 
-import { ChevronRight, GitBranch, ExternalLink } from 'lucide-react'
-
+import Link from 'next/link'
 import React from 'react'
+import { ChevronRight, GitBranch, ExternalLink } from 'lucide-react'
 import { getStatusStyle, StatusType } from '../lib/status-styles'
 import {
   Sparkles,
@@ -80,47 +80,54 @@ export function OverviewContent({ orgName, hasGithubConnection, metrics, recentA
           </h1>
         </div>
 
-        {/* Action Buttons (Primary white/black, Secondary 1px #262626 border) */}
+        {/* Action Buttons (Primary white/black) */}
         <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            className="px-3 py-1.5 rounded-none border border-[#262626] bg-[#0D0D0F] text-xs font-semibold text-[#FAFAFA] hover:bg-[#1F1F23] transition-colors"
-          >
-            Generate PRD
-          </button>
-
-          <button
-            type="button"
+          <Link
+            href="/dashboard/feature-requests/new"
             className="px-3.5 py-1.5 rounded-none bg-[#FAFAFA] text-xs font-semibold text-[#0A0A0A] hover:bg-[#E5E5E5] transition-colors flex items-center gap-1.5"
           >
             <Plus className="size-3.5" />
             <span>New Feature</span>
-          </button>
+          </Link>
         </div>
       </div>
 
       {/* Projects Section Header */}
       <div className="space-y-3">
-        <h2 className="text-lg font-bold tracking-tight text-[#FAFAFA]">
-          Projects
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold tracking-tight text-[#FAFAFA]">
+            Projects & Workspaces
+          </h2>
+          <span className="text-xs text-[#8B8B92] font-mono">
+            Isolated Data Scope
+          </span>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Main Project Card (Matching Render screenshot sharp box style) */}
+          {/* Active Project Card */}
           <div className="rounded-none border border-[#262626] bg-[#0D0D0F] p-6 space-y-4">
-            <h3 className="text-base font-bold text-[#FAFAFA]">
-              {orgName}
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-[#FAFAFA]">
+                {orgName}
+              </h3>
+              <span className="text-[10px] font-mono bg-[#1F1F23] text-[#FAFAFA] px-2 py-0.5 border border-[#262626]">
+                Active Project
+              </span>
+            </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-none bg-[#00573D] text-white text-xs font-semibold">
               <Check className="size-3.5 text-white" />
-              <span>All services are up and running</span>
+              <span>All services up & data strictly isolated</span>
             </div>
           </div>
 
-          {/* Action Slot Card (Dashed border sharp box) */}
-          <div className="rounded-none border border-dashed border-[#262626] bg-[#0D0D0F] p-6 flex items-center justify-center cursor-pointer hover:bg-[#161619] transition-colors text-xs font-semibold text-[#FAFAFA] gap-2">
-            <Plus className="size-4 text-[#8B8B92]" />
-            <span>Create new project</span>
+          {/* Project Isolation Info Card */}
+          <div className="rounded-none border border-[#262626] bg-[#0D0D0F] p-6 space-y-2 text-xs text-[#8B8B92] flex flex-col justify-between">
+            <div>
+              <span className="font-bold text-[#FAFAFA] block mb-1">Company Data Isolation</span>
+              <p className="leading-relaxed">
+                PRDs, Kanban tasks, and GitHub PR reviews belong strictly to <strong className="text-[#FAFAFA]">{orgName}</strong>. Switch or create a new company project from the top-left Workspace dropdown.
+              </p>
+            </div>
           </div>
         </div>
       </div>
