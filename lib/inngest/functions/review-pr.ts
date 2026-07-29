@@ -35,7 +35,11 @@ export const reviewPRFunction = inngest.createFunction(
       })
 
       if (pullRequest.reviewRunCount >= 3) {
-        return { limitReached: true as const }
+        return {
+          limitReached: true as const,
+          pullRequest,
+          installationId: pullRequest.organization.githubInstallationId,
+        }
       }
 
       // If PR has no linked feature request, attempt fallback linking to an approved PRD with tasks in the org
@@ -134,9 +138,51 @@ export const reviewPRFunction = inngest.createFunction(
     })
 
     if ('limitReached' in context) {
+      await step.run('handle-limit-reached', async () => {
+        // Determine the last known review status — fall back to the current PR status
+        const lastRun = await prisma.reviewRun.findFirst({
+          where: { pullRequestId: context.pullRequest.id },
+          orderBy: { iteration: 'desc' },
+        })
+        const finalStatus = lastRun?.status === 'READY_FOR_APPROVAL'
+          ? 'READY_FOR_APPROVAL'
+          : 'FIX_NEEDED'
+
+        // Update PR status so the website stops showing the loading spinner
+        await prisma.pullRequest.update({
+          where: { id: context.pullRequest.id },
+          data: { status: finalStatus },
+        })
+
+        // Post a GitHub comment if we have an installation ID
+        if (context.installationId) {
+          try {
+            const octokit = await githubApp.getInstallationOctokit(Number(context.installationId))
+            const [owner, repo] = context.pullRequest.repoFullName.split('/')
+            await octokit.request(
+              'POST /repos/{owner}/{repo}/issues/{issue_number}/comments',
+              {
+                owner,
+                repo,
+                issue_number: context.pullRequest.number,
+                body: '**Taarana AI Review — Limit Reached**\n\nThe automatic review limit (3 runs) has been reached for this PR. Further pushes will not be automatically reviewed.\n\nPlease request a manual review if needed.',
+              },
+            )
+          } catch (e) {
+            console.error('[review-pr] Failed to post limit-reached comment to GitHub:', e)
+          }
+        }
+      })
       return { status: 'LIMIT_REACHED', reason: 'Automatic review limit exceeded.' }
     }
     if ('skipped' in context) {
+      // Update PR status so it doesn't stay stuck as REVIEWING
+      await step.run('handle-skipped', async () => {
+        await prisma.pullRequest.update({
+          where: { id: event.data.pullRequestId },
+          data: { status: 'FIX_NEEDED' },
+        })
+      })
       return { status: 'SKIPPED', reason: context.reason }
     }
 
