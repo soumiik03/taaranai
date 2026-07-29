@@ -11,7 +11,7 @@ export function verifyWebhookSignature(
     signatureHeader: string | null
 ): boolean {
     const logSignatureFailure = () => {
-        console.error("GitHub webhook signature verification failed — check that GITHUB_WEBHOOK_SECRET in .env exactly matches the Webhook secret set on the GitHub App in GitHub's settings.")
+        console.error("GitHub webhook signature verification failed - check that GITHUB_WEBHOOK_SECRET in .env exactly matches the Webhook secret set on the GitHub App in GitHub's settings.")
     }
 
     if (!signatureHeader) {

@@ -2,6 +2,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyWebhookSignature, handlePullRequestEvent } from '@/lib/github/webhook-handler'
 
+export const runtime = 'nodejs'
+
 const DEBUG_WEBHOOKS = process.env.NODE_ENV !== 'production' || process.env.DEBUG_WEBHOOKS === 'true'
 
 export async function POST(request: NextRequest) {
@@ -21,12 +23,21 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ ignored: true, reason: 'not a pull_request event' })
     }
 
-    const payload = JSON.parse(rawBody)
+    let payload: Parameters<typeof handlePullRequestEvent>[0]
+    try {
+        payload = JSON.parse(rawBody) as Parameters<typeof handlePullRequestEvent>[0]
+    } catch {
+        return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 })
+    }
     if (DEBUG_WEBHOOKS) {
         console.info('[github webhook] parsed action:', payload.action)
         console.info('[github webhook] payload installation id:', payload.installation?.id)
     }
-    const result = await handlePullRequestEvent(payload)
-
-    return NextResponse.json(result)
+    try {
+        const result = await handlePullRequestEvent(payload)
+        return NextResponse.json(result)
+    } catch (error) {
+        console.error('[github webhook] processing failed:', error)
+        return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 })
+    }
 }
