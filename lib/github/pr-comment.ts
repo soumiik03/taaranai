@@ -1,54 +1,95 @@
 import type { App } from '@octokit/app'
 import { parseRepositoryName } from './pr-files'
 
-export type ReviewIssue = {
-  severity: 'blocking' | 'non-blocking'
+export type ReviewTask = {
+  id: string
   title: string
-  body: string
+  description: string
+}
+
+export type TaskVerdict = {
+  taskId: string
+  status: 'DONE' | 'NEEDS_FIX' | 'NOT_ADDRESSED'
+  reasoning: string
+}
+
+export type ReviewIssue = {
+  taskId: string
+  severity: 'blocking' | 'non-blocking'
   file: string
-  line: number | null
+  line: number
+  message: string
+}
+
+function statusLabel(status: TaskVerdict['status']) {
+  if (status === 'DONE') return 'Done'
+  if (status === 'NEEDS_FIX') return 'Needs Fix'
+  return 'Not Addressed'
 }
 
 export async function postReviewComments({
-  githubApp, installationId, repoFullName, pullNumber, headSha, issues, chunks,
+  githubApp,
+  installationId,
+  repoFullName,
+  pullNumber,
+  headSha,
+  tasks,
+  taskVerdicts,
+  issues,
 }: {
   githubApp: App
   installationId: string
   repoFullName: string
   pullNumber: number
   headSha: string
+  tasks: ReviewTask[]
+  taskVerdicts: TaskVerdict[]
   issues: ReviewIssue[]
-  chunks: { filename: string; changedLines: number[] }[]
 }) {
   const octokit = await githubApp.getInstallationOctokit(Number(installationId))
   const { owner, repo } = parseRepositoryName(repoFullName)
-  let posted = 0
+  const verdictByTaskId = new Map(taskVerdicts.map((verdict) => [verdict.taskId, verdict]))
+  const doneCount = taskVerdicts.filter((verdict) => verdict.status === 'DONE').length
+  const needsFixCount = taskVerdicts.filter((verdict) => verdict.status === 'NEEDS_FIX').length
+  const notAddressedCount = taskVerdicts.filter((verdict) => verdict.status === 'NOT_ADDRESSED').length
 
-  for (const issue of issues) {
-    const body = `**${issue.severity === 'blocking' ? 'Blocking' : 'Non-blocking'}: ${issue.title}**\n\n${issue.body}`
-    const canCommentInline = Boolean(
-      issue.line !== null &&
-      chunks.some((candidate) => candidate.filename === issue.file && candidate.changedLines.includes(issue.line as number))
-    )
+  const taskLines = tasks.map((task) => {
+    const verdict = verdictByTaskId.get(task.id)
+    return '- ' + task.title + ' → ' + statusLabel(verdict?.status ?? 'NOT_ADDRESSED')
+  })
 
-    if (canCommentInline) {
-      try {
-        await octokit.request('POST /repos/{owner}/{repo}/pulls/{pull_number}/comments', {
-          owner, repo, pull_number: pullNumber, body, commit_id: headSha, path: issue.file,
-          line: issue.line as number, side: 'RIGHT',
-        })
-        posted += 1
-        continue
-      } catch (error) {
-        console.warn('Inline GitHub review comment failed; using general comment', error)
-      }
-    }
+  const body = [
+    'Reviewed against ' + tasks.length + ' tasks from the approved plan. ' +
+      doneCount + ' complete, ' + needsFixCount + ' needs a fix, ' +
+      notAddressedCount + ' not yet addressed.',
+    '',
+    ...taskLines,
+  ].join('\n')
 
-    await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
-      owner, repo, issue_number: pullNumber,
-      body: `${body}\n\n_File: ${issue.file}${issue.line ? `, line ${issue.line}` : ''}_`,
-    })
-    posted += 1
+  const comments = issues.map((issue) => ({
+    path: issue.file,
+    line: issue.line,
+    side: 'RIGHT' as const,
+    body: '**' + (issue.severity === 'blocking' ? 'Blocking' : 'Non-blocking') +
+      ' — ' + (tasks.find((task) => task.id === issue.taskId)?.title ?? issue.taskId) +
+      '**\n\n' + issue.message,
+  }))
+
+  const response = await octokit.request(
+    'POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews',
+    {
+      owner,
+      repo,
+      pull_number: pullNumber,
+      commit_id: headSha,
+      body,
+      event: 'COMMENT',
+      comments,
+    },
+  )
+
+  return {
+    reviewId: response.data.id,
+    commentsPosted: comments.length,
   }
-  return { posted }
 }
