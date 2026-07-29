@@ -21,7 +21,7 @@ export async function executeClarificationForRequest(featureRequestId: string) {
     where: { featureRequestId },
   })
 
-  if (existingCount >= 4) {
+  if (existingCount >= 5) {
     await prisma.featureRequest.update({
       where: { id: featureRequestId },
       data: { status: 'READY' },
@@ -29,7 +29,7 @@ export async function executeClarificationForRequest(featureRequestId: string) {
     return { status: 'ready' }
   }
 
-  const maxAllowed = Math.min(3, 4 - existingCount)
+  const maxAllowed = Math.min(5, 5 - existingCount)
 
 
     const { object: aiResult } = await generateObject({
@@ -108,7 +108,7 @@ export const recheckClarification = inngest.createFunction(
       return { featureRequest, questions, count: questions.length }
     })
 
-    if (context.count >= 4) {
+    if (context.count >= 5) {
       await step.run('mark-ready', async () => {
         await prisma.featureRequest.update({
           where: { id: featureRequestId },
@@ -124,7 +124,7 @@ export const recheckClarification = inngest.createFunction(
       return { status: 'ready', followUpsAsked: 0 }
     }
 
-    const maxAllowed = Math.min(2, 4 - context.count)
+    const maxAllowed = Math.min(5, 5 - context.count)
 
     const aiResult = await step.run('recheck-with-ai', async () => {
       const qaText = context.questions

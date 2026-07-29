@@ -25,6 +25,7 @@ export const reviewPRFunction = inngest.createFunction(
                 include: {
                   tasks: {
                     orderBy: { order: 'asc' },
+                    take: 4,
                   },
                 },
               },
@@ -33,7 +34,7 @@ export const reviewPRFunction = inngest.createFunction(
         },
       })
 
-      if (pullRequest.reviewRunCount >= 5) {
+      if (pullRequest.reviewRunCount >= 3) {
         return { limitReached: true as const }
       }
 
@@ -50,7 +51,7 @@ export const reviewPRFunction = inngest.createFunction(
           include: {
             prd: {
               include: {
-                tasks: { orderBy: { order: 'asc' } },
+                tasks: { orderBy: { order: 'asc' }, take: 4 },
               },
             },
           },
@@ -83,9 +84,18 @@ export const reviewPRFunction = inngest.createFunction(
 
       const previousRun = await prisma.reviewRun.findFirst({
         where: { pullRequestId: pullRequest.id },
+        include: { issues: true },
         orderBy: { iteration: 'desc' },
       })
       const previousVerdicts = previousRun?.taskVerdicts as { taskId: string; status: string; reasoning: string }[] | undefined
+      const previousIssues = previousRun?.issues
+        .filter(i => !i.resolved && i.line !== null)
+        .map(i => ({
+          file: i.file,
+          line: i.line as number,
+          message: i.body,
+          resolved: i.resolved,
+        }))
 
       const prd = pullRequest.featureRequest?.prd
       if (!prd || prd.status !== 'APPROVED') {
@@ -118,6 +128,7 @@ export const reviewPRFunction = inngest.createFunction(
         tasks,
         installationId: pullRequest.organization.githubInstallationId,
         previousVerdicts,
+        previousIssues,
       }
     })
 
@@ -154,7 +165,7 @@ export const reviewPRFunction = inngest.createFunction(
       const issuesByKey = new Map<string, GeneratedReviewIssue>()
 
       for (const chunk of chunks) {
-        const chunkReview = await reviewDiffChunk(context.tasks, chunk, context.previousVerdicts)
+        const chunkReview = await reviewDiffChunk(context.tasks, chunk, context.previousVerdicts, context.previousIssues)
 
         for (const verdict of chunkReview.taskVerdicts) {
           const existing = taskVerdictById.get(verdict.taskId)
@@ -201,7 +212,7 @@ export const reviewPRFunction = inngest.createFunction(
         taskVerdicts: review.taskVerdicts as TaskVerdict[],
         issues: review.issues as ReviewIssue[],
         isReReview: context.pullRequest.reviewRunCount > 0,
-        isFinalReview: context.pullRequest.reviewRunCount === 4,
+        isFinalReview: context.pullRequest.reviewRunCount === 2,
       }),
     )
 

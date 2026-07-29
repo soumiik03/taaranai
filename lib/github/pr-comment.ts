@@ -64,8 +64,18 @@ export async function postReviewComments({
 
   const prefix = isReReview ? 'Re-review after latest push:\n\n' : ''
   const suffix = isFinalReview
-    ? '\n\n**Note:** The automatic review limit (5 runs) has been reached for this PR. Further pushes will not be automatically reviewed and will require manual review.'
+    ? '\n\n**Note:** The automatic review limit (3 runs) has been reached for this PR. Further pushes will not be automatically reviewed and will require manual review.'
     : ''
+
+  const issuesList = issues.length > 0 ? [
+    '',
+    '### Issues Found:',
+    '',
+    ...issues.map(issue => {
+      const taskTitle = tasks.find((task) => task.id === issue.taskId)?.title ?? issue.taskId
+      return `- **File:** \`${issue.file}\` (Line ${issue.line})\n  **Severity:** ${issue.severity === 'blocking' ? 'Blocking' : 'Non-blocking'}\n  **Task:** ${taskTitle}\n  **Message:** ${issue.message}`
+    })
+  ] : []
 
   const body = prefix + [
     'Reviewed against ' + tasks.length + ' tasks from the approved plan. ' +
@@ -73,16 +83,8 @@ export async function postReviewComments({
       notAddressedCount + ' not yet addressed.',
     '',
     ...taskLines,
+    ...issuesList
   ].join('\n') + suffix
-
-  const comments = issues.map((issue) => ({
-    path: issue.file,
-    line: issue.line,
-    side: 'RIGHT' as const,
-    body: '**' + (issue.severity === 'blocking' ? 'Blocking' : 'Non-blocking') +
-      ' — ' + (tasks.find((task) => task.id === issue.taskId)?.title ?? issue.taskId) +
-      '**\n\n' + issue.message,
-  }))
 
   const response = await octokit.request(
     'POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews',
@@ -93,12 +95,12 @@ export async function postReviewComments({
       commit_id: headSha,
       body,
       event: 'COMMENT',
-      comments,
+      comments: [],
     },
   )
 
   return {
     reviewId: response.data.id,
-    commentsPosted: comments.length,
+    commentsPosted: issues.length,
   }
 }
