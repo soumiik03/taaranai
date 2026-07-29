@@ -20,6 +20,12 @@ export function verifyWebhookSignature(
     }
 
     const secret = env.GITHUB_WEBHOOK_SECRET
+    const normalizedSignature = signatureHeader.trim()
+
+    if (DEBUG_WEBHOOKS) {
+        const secretFingerprint = crypto.createHash('sha256').update(secret).digest('hex').slice(0, 12)
+        console.info('[github webhook] signature diagnostics:', { secretLength: secret.length, secretFingerprint, signatureLength: normalizedSignature.length })
+    }
 
     const hmac = crypto.createHmac('sha256', secret)
     const expected = 'sha256=' + hmac.update(rawBody).digest('hex')
@@ -28,7 +34,7 @@ export function verifyWebhookSignature(
     // byte-by-byte — a plain === comparison returns faster the moment it
     // hits the first mismatched character, which is a measurable signal.
     const expectedBuffer = Buffer.from(expected)
-    const actualBuffer = Buffer.from(signatureHeader)
+    const actualBuffer = Buffer.from(normalizedSignature)
 
     if (expectedBuffer.length !== actualBuffer.length) {
         logSignatureFailure()

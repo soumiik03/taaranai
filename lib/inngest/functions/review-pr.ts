@@ -15,11 +15,29 @@ export const reviewPRFunction = inngest.createFunction(
         where: { id: event.data.pullRequestId },
         include: { organization: true, featureRequest: { include: { prd: true } } },
       })
-      if (!pullRequest.featureRequest?.prd) throw new Error('Cannot review pull request without a linked PRD')
+      const prd = pullRequest.featureRequest?.prd
+        ? {
+            ...pullRequest.featureRequest.prd,
+            featureRequest: {
+              title: pullRequest.featureRequest.title,
+              description: pullRequest.featureRequest.description,
+            },
+          }
+        : {
+            problemStatement: 'No product requirements document is linked to this pull request.',
+            goals: [],
+            nonGoals: [],
+            userStories: [],
+            acceptanceCriteria: [],
+            edgeCases: [],
+            successMetrics: [],
+            featureRequest: null,
+            reviewMode: 'general' as const,
+          }
       if (!pullRequest.organization.githubInstallationId) throw new Error('Cannot review pull request without a GitHub installation')
       return {
         pullRequest,
-        prd: { ...pullRequest.featureRequest.prd, featureRequest: { title: pullRequest.featureRequest.title, description: pullRequest.featureRequest.description } },
+        prd,
         installationId: pullRequest.organization.githubInstallationId,
       }
     })
