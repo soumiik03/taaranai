@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Trash2, Loader2, Sparkles, ArrowRight } from 'lucide-react'
 import { statusStyles } from '@/features/dashboard/lib/status-styles'
 import { deleteFeatureRequestInline } from '../actions'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
 
 export interface FeatureRequestItem {
   id: string
@@ -22,17 +23,21 @@ interface FeatureRequestListProps {
 export function FeatureRequestList({ initialRequests }: FeatureRequestListProps) {
   const [requests, setRequests] = useState<FeatureRequestItem[]>(initialRequests)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [requestToDelete, setRequestToDelete] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  const handleDelete = (id: string, e: React.MouseEvent) => {
+  const handleDeleteClick = (id: string, e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
+    setRequestToDelete(id)
+  }
 
-    if (!confirm('Are you sure you want to delete this feature request? This action cannot be undone.')) {
-      return
-    }
-
+  const handleConfirmDelete = () => {
+    if (!requestToDelete) return
+    const id = requestToDelete
+    setRequestToDelete(null)
     setDeletingId(id)
+
     startTransition(async () => {
       try {
         await deleteFeatureRequestInline(id)
@@ -89,14 +94,14 @@ export function FeatureRequestList({ initialRequests }: FeatureRequestListProps)
 
               <div className="flex items-center gap-3 text-[11px] text-muted-foreground/70 mt-2 font-mono">
                 <span className="capitalize">Source: {r.sourceType.toLowerCase()}</span>
-              <span>|</span>
+                <span>|</span>
                 <span>Created {new Date(r.createdAt).toLocaleDateString()}</span>
               </div>
             </Link>
 
             <div className="flex items-center gap-2 shrink-0">
               <button
-                onClick={(e) => handleDelete(r.id, e)}
+                onClick={(e) => handleDeleteClick(r.id, e)}
                 disabled={isDeletingThis}
                 title="Delete Feature Request"
                 className="p-2 rounded-xl text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 transition-colors border border-transparent hover:border-rose-500/20 disabled:opacity-50"
@@ -111,6 +116,16 @@ export function FeatureRequestList({ initialRequests }: FeatureRequestListProps)
           </div>
         )
       })}
+
+      <ConfirmModal
+        isOpen={!!requestToDelete}
+        onClose={() => setRequestToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Feature Request"
+        description="Are you sure you want to delete this feature request? This action cannot be undone."
+        confirmText="Delete Request"
+        isLoading={isPending}
+      />
     </div>
   )
 }

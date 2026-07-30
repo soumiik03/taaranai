@@ -1,7 +1,7 @@
 // features/tasks/components/task-details-modal.tsx
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -22,12 +22,12 @@ import {
   AlertCircle,
   Clock,
   CheckCircle2,
-  ArrowRight,
   ArrowLeft,
   FileText,
   Loader2,
   Sparkles,
 } from 'lucide-react'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
 
 interface TaskDetailsModalProps {
   task: TaskItem | null
@@ -48,19 +48,21 @@ export function TaskDetailsModal({
   onTaskUpdated,
 }: TaskDetailsModalProps) {
   const [isEditing, setIsEditing] = useState(false)
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [priority, setPriority] = useState<TaskPriority>('medium')
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+
+  const [prevTaskId, setPrevTaskId] = useState<string | null>(null)
+  const [title, setTitle] = useState(task?.title || '')
+  const [description, setDescription] = useState(task?.description || '')
+  const [priority, setPriority] = useState<TaskPriority>(task?.priority || 'medium')
   const [isPending, startTransition] = useTransition()
 
-  useEffect(() => {
-    if (task) {
-      setTitle(task.title)
-      setDescription(task.description)
-      setPriority(task.priority)
-      setIsEditing(false)
-    }
-  }, [task])
+  if (task && task.id !== prevTaskId) {
+    setPrevTaskId(task.id)
+    setTitle(task.title)
+    setDescription(task.description)
+    setPriority(task.priority)
+    setIsEditing(false)
+  }
 
   if (!isOpen || !task) return null
 
@@ -124,8 +126,8 @@ export function TaskDetailsModal({
     })
   }
 
-  function handleDelete() {
-    if (!confirm('Are you sure you want to delete this task?')) return
+  function handleDeleteConfirm() {
+    setShowDeleteModal(false)
     startTransition(async () => {
       await deleteTask(task!.id)
       if (onTaskUpdated) onTaskUpdated()
@@ -337,7 +339,7 @@ export function TaskDetailsModal({
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleDelete}
+            onClick={() => setShowDeleteModal(true)}
             disabled={isPending}
             className="text-xs text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5 self-end sm:self-auto"
           >
@@ -345,6 +347,16 @@ export function TaskDetailsModal({
           </Button>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Task"
+        description="Are you sure you want to delete this task? This action cannot be undone."
+        confirmText="Delete Task"
+        isLoading={isPending}
+      />
     </div>
   )
 }

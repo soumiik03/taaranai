@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { updatePrdSection, approvePrd, deletePrd } from '../actions'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
 import {
   ArrowLeft,
   CheckCircle2,
@@ -188,6 +189,7 @@ export function PrdEditor({ prd, flow }: { prd: Prd; flow?: string }) {
   const router = useRouter()
   const [isApproving, startApprove] = useTransition()
   const [isDeleting, startDelete] = useTransition()
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const [problemStatement, setProblemStatement] = useState(prd.problemStatement || '')
   const [userStories, setUserStories] = useState<UserStory[]>(prd.userStories || [])
@@ -228,8 +230,8 @@ export function PrdEditor({ prd, flow }: { prd: Prd; flow?: string }) {
     updatePrdSection(prd.id, 'userStories', userStories)
   }
 
-  function handleDeletePrd() {
-    if (!confirm('Are you sure you want to delete this PRD?')) return
+  function handleDeleteConfirm() {
+    setShowDeleteModal(false)
     startDelete(async () => {
       await deletePrd(prd.id)
       router.push('/dashboard/prd')
@@ -268,7 +270,7 @@ export function PrdEditor({ prd, flow }: { prd: Prd; flow?: string }) {
             <Button
               variant="outline"
               size="sm"
-              onClick={handleDeletePrd}
+              onClick={() => setShowDeleteModal(true)}
               disabled={isDeleting}
               className="text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/20 gap-1.5"
             >
@@ -446,6 +448,16 @@ export function PrdEditor({ prd, flow }: { prd: Prd; flow?: string }) {
           />
         </SectionCard>
       </div>
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete PRD"
+        description="Are you sure you want to delete this PRD? This action cannot be undone."
+        confirmText="Delete PRD"
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

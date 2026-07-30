@@ -35,6 +35,8 @@ import {
   Eye,
 } from 'lucide-react'
 
+import { ConfirmModal } from '@/components/ui/confirm-modal'
+
 export type TaskItem = {
   id: string
   title: string
@@ -55,6 +57,7 @@ interface TaskCardProps {
 
 export function TaskCard({ task, onTaskUpdated, onSelectTask }: TaskCardProps) {
   const [isEditing, setIsEditing] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [title, setTitle] = useState(task.title)
   const [description, setDescription] = useState(task.description)
   const [priority, setPriority] = useState<TaskPriority>(task.priority)
@@ -102,9 +105,8 @@ export function TaskCard({ task, onTaskUpdated, onSelectTask }: TaskCardProps) {
     })
   }
 
-  function handleDelete(e?: React.MouseEvent) {
-    e?.stopPropagation()
-    if (!confirm('Are you sure you want to delete this task?')) return
+  function handleDeleteConfirm() {
+    setShowDeleteModal(false)
     startTransition(async () => {
       await deleteTask(task.id)
       if (onTaskUpdated) onTaskUpdated()
@@ -306,7 +308,10 @@ export function TaskCard({ task, onTaskUpdated, onSelectTask }: TaskCardProps) {
                   )}
 
                   <DropdownMenuItem
-                    onClick={(e) => handleDelete(e)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShowDeleteModal(true)
+                    }}
                     className="gap-2 text-xs text-destructive focus:text-destructive"
                   >
                     <Trash2 className="h-3.5 w-3.5" /> Delete Task
@@ -382,6 +387,16 @@ export function TaskCard({ task, onTaskUpdated, onSelectTask }: TaskCardProps) {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Task"
+        description="Are you sure you want to delete this task? This action cannot be undone."
+        confirmText="Delete Task"
+        isLoading={isPending}
+      />
     </div>
   )
 }
